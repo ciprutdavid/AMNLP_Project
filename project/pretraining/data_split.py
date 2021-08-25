@@ -5,20 +5,20 @@ from nltk.util import ngrams
 import numpy as np
 import time
 
-DATA_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/all"
-PROCESSED_DATA_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/processed"
+DATA_PATH = "./data/wiki/all"
+PROCESSED_DATA_PATH = "./data/wiki/processed"
 STOPWORDS_LIST = stopwords.words('english')
 VAL_SET_SIZE = 500
-TRAIN_DATA_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/train"
-VAL_DATA_PATH  = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/test"
+TRAIN_DATA_PATH = "./data/wiki/train"
+VAL_DATA_PATH  = "./data/wiki/test"
 
 
-def ends_with_punctutation(string):
+def ends_with_punctuation(string):
     return re.match(".*[?.:;!]$", string) is not None
 
 
 def unwanted_line(string):
-    return string.startswith("<doc") or string.startswith("</doc>") or string == "\n" or not ends_with_punctutation(
+    return string.startswith("<doc") or string.startswith("</doc>") or string == "\n" or not ends_with_punctuation(
         string)
 
 
@@ -46,16 +46,15 @@ def split_train_validation():
             train.write(line)
 
 
-
 def has_recurring_span(paragraph):
     if unwanted_line(paragraph):
         return False
-    paragraph_list = [word for word in strip_punctutation(paragraph).lower().split() if word not in STOPWORDS_LIST]
+    paragraph_list = [word for word in strip_punctuation(paragraph).lower().split() if word not in STOPWORDS_LIST]
     paragraph_set = set(paragraph_list)
     return len(paragraph_set) != len(paragraph_list)
 
 
-def strip_punctutation(string):
+def strip_punctuation(string):
     return re.sub(r'[.,;:!?]', '', string)
 
 
