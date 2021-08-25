@@ -1,35 +1,20 @@
-import time
-import matplotlib.pyplot as plt
 import re
+import nltk
+from nltk.corpus import stopwords
+from nltk.util import ngrams
 import numpy as np
+import time
 
-DATA_PATH = "data/all"
-DATA_PATH_SERVER = ""
-
-f = open(DATA_PATH)
-start = time.time()
-len_set = set()
-num_of_paragraphs = 0
-for i, string in enumerate(f, 1):
-    if string.startswith("<doc") or string.startswith("</doc>") or not string.endswith(".\n") or string == "\n":
-        continue
-    else:
-        len_set.add(len(string.split()))
-        num_of_paragraphs += 1
-end = time.time()
-print(f"Took {end - start} seconds")
-
-print(f"Max paragraph lenght is {max(len_set)}")
-print(f"Min paragraph length is {min(len_set)}")
-print(f"Number of paragraphs is {num_of_paragraphs}")
-
-plt.hist(list(len_set))
-plt.show()
-f.close()
+DATA_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/all"
+PROCESSED_DATA_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/processed"
+STOPWORDS_LIST = stopwords.words('english')
+VAL_SET_SIZE = 500
+TRAIN_DATA_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/train"
+VAL_DATA_PATH  = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/test"
 
 
 def ends_with_punctutation(string):
-    return re.match('.*[?.:;!]$', string) is not None
+    return re.match(".*[?.:;!]$", string) is not None
 
 
 def unwanted_line(string):
@@ -37,41 +22,42 @@ def unwanted_line(string):
         string)
 
 
-#  Bunu geri geldiginde yap
-def preprocess_text(input_file, output_train_file, output_val_file):
-    print()
+def preprocess_wiki():
+    data = open(DATA_PATH, 'r')
+    processed = open(PROCESSED_DATA_PATH, 'a')
+    num_lines =0
+    for paragraph in data:
+        if has_recurring_span(paragraph):
+            num_lines += 1
+            processed.write(paragraph)
+    return num_lines
+
+def split_train_validation():
+    num_paragraphs = preprocess_wiki()
+    VALIDATION_DOC_ID = np.random.choice(num_paragraphs, VAL_SET_SIZE, replace=False)
+    data = open(PROCESSED_DATA_PATH, 'r')
+    train = open(TRAIN_DATA_PATH, 'a')
+    val = open(VAL_DATA_PATH, 'a')
+    content = data.readlines()
+    for i,line in enumerate(content):
+        if i in VALIDATION_DOC_ID:
+            val.write(line)
+        else:
+            train.write(line)
 
 
-def remove_end_line(string):
-    if string.endswith("\n"):
-        string = string[:-1]
-    return string
+
+def has_recurring_span(paragraph):
+    if unwanted_line(paragraph):
+        return False
+    paragraph_list = [word for word in strip_punctutation(paragraph).lower().split() if word not in STOPWORDS_LIST]
+    paragraph_set = set(paragraph_list)
+    return len(paragraph_set) != len(paragraph_list)
 
 
-def random_indices_for_val_set(num_of_paragraphs_in_text, num_of_paragraphs_for_val):
-    return set(np.random.choice(num_of_paragraphs, num_of_paragraphs_for_val, replace=False))
+def strip_punctutation(string):
+    return re.sub(r'[.,;:!?]', '', string)
 
 
-start = time.time()
-
-all_data = open(DATA_PATH)
-train_data = open("data/train",'a')
-val_data = open("data/val",'a')
-val_data_indices = random_indices_for_val_set(num_of_paragraphs,600)
-
-for i,string in enumerate(all_data):
-  if unwanted_line(string):
-    continue
-  else:
-    string = remove_end_line(string)
-    if i in val_data_indices:
-      val_data.write(string)
-    else:
-      train_data.write(string)
-
-
-train_data.close()
-val_data.close()
-
-end = time.time()
-print(end-start)
+if __name__ == "__main__":
+    split_train_validation()
