@@ -8,10 +8,11 @@ import time
 import os
 from collections import Counter
 from itertools import dropwhile
+from functools import reduce
 
 DATA_PATH = "E:/Studies/TAU/NLP/all"
 PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
-STOPWORDS_LIST = stopwords.words('english') + ['-']
+STOPWORDS_LIST = stopwords.words('english') + ['-', '"', '(', ')', '[' ,']']
 nltk.download('punkt')
 TRAIN_DATA_PATH = "E:/Studies/TAU/NLP/train"
 VAL_DATA_PATH  = "E:/Studies/TAU/NLP/test"
@@ -21,11 +22,9 @@ MAX_SPAN_LEN = 10
 def ends_with_punctuation(string):
     return re.match(".*[?.:;!]$", string) is not None
 
-
 def unwanted_line(string):
     return string.startswith("<doc") or string.startswith("</doc>") or string == "\n" or not ends_with_punctuation(
         string)
-
 
 def preprocess_wiki():
     if os.stat(PROCESSED_DATA_PATH).st_size > 0:
@@ -38,7 +37,6 @@ def preprocess_wiki():
             num_lines += 1
             processed.write(paragraph)
     return num_lines
-
 
 def data_reader(ob):
     try:
@@ -90,20 +88,33 @@ def remove_duplicate_ngrams(ng, all_positions, is_masked):
         unique = []
     return unique
 
+def filter_irrelevant_spans(ngrams_list):
+    interrupters = ['.', ',', '?', '!']
+    bad_suffixes_and_prefixes = ['-', "&", '=', '$', '\'']
+    doubles = ['"']
+    parenthesis = [('[', ']'), ('(', ')'), ('<', '>'), ('{', '}')]
+    filters = [lambda t: all(ch not in t for ch in interrupters),
+               lambda t: any(ch.isalnum() for ch in t),
+               lambda t: all(ch.isascii() for ch in t),
+               lambda t: any(len(ch) > 1 for ch in t),
+               lambda t: any(ch not in STOPWORDS_LIST for ch in t),
+               lambda t: all(t[0] != ch and t[-1] != ch for ch in bad_suffixes_and_prefixes),
+               lambda t: all(t.count(ch) % 2 == 0 for ch in doubles),
+               lambda t: all(t.count(l) == t.count(r) for (l,r) in parenthesis)
+               ]
+    ngrams_list = list(filter(lambda ng : all(f(ng) for f in filters), ngrams_list))
+    return Counter(ngrams_list)
 
 def find_all_recurring_spans(line, tokenizer):
     words_count = int(len(line.split()) * 0.15)
     line = line.lower()
     spans = list(tokenizer.span_tokenize(line))
     word_list = [line[start:end]for (start,end) in spans]
-    interrupters = ['.', ',', '?', '!']
     ngrams_pos = {}
     is_masked = [False] * len(word_list)
     for n in range(MAX_SPAN_LEN, 0, -1):
         ngrams = nltk.ngrams(word_list, n)
-        ngrams = list(filter(lambda t: all(ch not in t for ch in interrupters), ngrams))
-        ngrams = list(filter(lambda t: any(ch not in STOPWORDS_LIST for ch in t), ngrams))
-        ngram_freq = Counter(ngrams)
+        ngram_freq = filter_irrelevant_spans(ngrams)
         for k,_ in dropwhile(lambda v : v[1] > 1 , ngram_freq.most_common()):
             del ngram_freq[k]
         ngrams_pos_n = find_ngrams_positions(word_list, spans, ngram_freq)
@@ -112,8 +123,6 @@ def find_all_recurring_spans(line, tokenizer):
         ngrams_pos.update({ng : l for ng, l  in ngrams_pos_n.items() if len(l) > 1})
     return ngrams_pos
 
-
-
 def mask_passage(line, ngram_positions):
     answer_positions = np.random.randint(0,len(ngram_positions))
     for idx,position in enumerate(ngram_positions):
@@ -121,28 +130,27 @@ def mask_passage(line, ngram_positions):
         line = line[:position[0]] + "[QUESTION]" + line[position[1]:]
     return line
 
-
-def find_maximal_ngrams(line, hist, tokenizer):
-    raise NotImplementedError
-
 def select_masked_tokens(line, ngrams_list):
     # TODO: add [QUESTION] token for n-1 of the occurrences for 1 (or more) repeated words from ngram_list
     raise NotImplementedError
 
-def add_question_tokens():
+def add_question_tokens(limit = np.inf):
     data = open(PROCESSED_DATA_PATH, 'r') # Consider to split train and validation 'lazy'ly after this function.
     word_tokenizer = WordPunctTokenizer()
     reader = data_reader(data)
-    while True:
+    count = 0
+    all_ngrams = set()
+    while count < limit:
         try:
             line = next(reader)
-            hist = find_all_recurring_spans(line, word_tokenizer)
-            ngrams_list = find_maximal_ngrams(data, hist, word_tokenizer)
-            processed_line = select_masked_tokens(line, ngrams_list)
+            rec_spans = find_all_recurring_spans(line, word_tokenizer)
+            all_ngrams.update(rec_spans.keys())
+            # processed_line = select_masked_tokens(line, ngrams_list)
             # TODO: Maybe here it's a good place to add (stochaticly) to train/validation
+            count += 1
         except EOFError:
             break
-
+    return all_ngrams
 
 def has_recurring_span(paragraph):
     if unwanted_line(paragraph):
@@ -151,18 +159,11 @@ def has_recurring_span(paragraph):
     paragraph_set = set(paragraph_list)
     return len(paragraph_set) != len(paragraph_list)
 
-
 def strip_punctuation(string):
     return re.sub(r'[.,;:!?]', '', string)
 
-
 if __name__ == "__main__":
     with open(PROCESSED_DATA_PATH, 'r') as data:
-        tkn = WordPunctTokenizer()
-        next(data)
-        line = next(data)
-        sp = list(tkn.span_tokenize(line))
-        word_list = [line[s:e] for (s,e) in sp]
-        # line = "Boom boom boom na a na boom boom b c la Boom boom Boom boom b"
-        line = "boom boom boom boom boom boom boom"
-        print(find_all_recurring_spans(line, tkn))
+        all_ngrams = add_question_tokens(100)
+        for s in all_ngrams:
+            print(s)
