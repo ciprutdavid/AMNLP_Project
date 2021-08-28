@@ -10,12 +10,12 @@ from collections import Counter
 from itertools import dropwhile
 from functools import reduce
 
-DATA_PATH = "E:/Studies/TAU/NLP/all"
-PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
+DATA_PATH = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/all"
+PROCESSED_DATA_PATH = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/processed"
 STOPWORDS_LIST = stopwords.words('english') + ['-', '"', '(', ')', '[' ,']']
 nltk.download('punkt')
-TRAIN_DATA_PATH = "E:/Studies/TAU/NLP/train"
-VAL_DATA_PATH  = "E:/Studies/TAU/NLP/test"
+TRAIN_DATA_PATH = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/train"
+VAL_DATA_PATH  = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/test"
 VAL_SET_SIZE = 500
 MAX_SPAN_LEN = 10
 
