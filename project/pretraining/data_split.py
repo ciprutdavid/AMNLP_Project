@@ -144,13 +144,13 @@ def add_question_tokens(limit = np.inf):
         try:
             line = next(reader)
             rec_spans = find_all_recurring_spans(line, word_tokenizer)
-            all_ngrams.update(rec_spans.keys())
-            # processed_line = select_masked_tokens(line, ngrams_list)
+            # all_ngrams.update(rec_spans.keys())
+            # processed_line = mask_tokens(line, ngrams_list)
             # TODO: Maybe here it's a good place to add (stochaticly) to train/validation
             count += 1
         except EOFError:
             break
-    return all_ngrams
+    return rec_spans
 
 def has_recurring_span(paragraph):
     if unwanted_line(paragraph):
@@ -163,7 +163,9 @@ def strip_punctuation(string):
     return re.sub(r'[.,;:!?]', '', string)
 
 if __name__ == "__main__":
+    num_runs = 10000
     with open(PROCESSED_DATA_PATH, 'r') as data:
-        all_ngrams = add_question_tokens(100)
-        for s in all_ngrams:
-            print(s)
+        st_time = time.time()
+        all_ngrams = add_question_tokens(num_runs)
+        en_time = time.time()
+    print("%d Lines were processed in %.2f seconds" % (num_runs, (en_time - st_time)))
