@@ -163,7 +163,7 @@ def strip_punctuation(string):
     return re.sub(r'[.,;:!?]', '', string)
 
 if __name__ == "__main__":
-    num_runs = 10000
+    num_runs = 5000000
     with open(PROCESSED_DATA_PATH, 'r') as data:
         st_time = time.time()
         all_ngrams = add_question_tokens(num_runs)
