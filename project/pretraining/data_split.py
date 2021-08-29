@@ -11,7 +11,7 @@ from itertools import dropwhile
 from functools import reduce
 
 DATA_PATH = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/all"
-PROCESSED_DATA_PATH = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/processed"
+PROCESSED_DATA_PATH = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/0"
 STOPWORDS_LIST = stopwords.words('english') + ['-', '"', '(', ')', '[' ,']']
 nltk.download('punkt')
 TRAIN_DATA_PATH = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/train"
