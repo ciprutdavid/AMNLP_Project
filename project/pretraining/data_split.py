@@ -256,7 +256,7 @@ class Paragraph:
         self.offset = 0
         masked_line = self.line[:]
 
-if __name__ == "__main__"
+if __name__ == "__main__":
     num_runs = 10
     st_time = time.time()
     all_ngrams = create_dataset(num_runs)
