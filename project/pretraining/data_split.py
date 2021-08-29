@@ -10,12 +10,12 @@ from collections import Counter, OrderedDict
 from itertools import dropwhile
 from functools import reduce
 
-DATA_PATH = "E:/Studies/TAU/NLP/all"
-PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
+DATA_PATH = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/all"
+PROCESSED_DATA_PATH = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/0"
 STOPWORDS_LIST = stopwords.words('english') + ['-', '"', '(', ')', '[' ,']']
 nltk.download('punkt')
-TRAIN_DATA_PATH = "E:/Studies/TAU/NLP/train"
-VAL_DATA_PATH  = "E:/Studies/TAU/NLP/test"
+TRAIN_DATA_PATH = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/train"
+VAL_DATA_PATH  = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/test"
 VAL_SET_SIZE = 500
 MAX_SPAN_LEN = 10
 MAX_TOKENS_TO_MASK = 30
@@ -256,18 +256,10 @@ class Paragraph:
         self.offset = 0
         masked_line = self.line[:]
 
-
-
-
-
-
-
-
-
-
-if __name__ == "__main__":
+if __name__ == "__main__"
     num_runs = 10
     st_time = time.time()
     all_ngrams = create_dataset(num_runs)
     en_time = time.time()
+
     print("%d Lines were processed in %.2f seconds" % (num_runs, (en_time - st_time)))
