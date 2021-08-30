@@ -63,9 +63,7 @@ def has_recurring_span(paragraph):
 def strip_punctuation(string):
     return re.sub(r'[.,;:!?]', '', string)
 
-
 def create_dataset(limit = np.inf):
-    mini_timer = 0.
     with open(PROCESSED_DATA_PATH, 'r') as reader:
         count = 0
         timer_all = {i: 0 for i in range(7)}
@@ -74,19 +72,15 @@ def create_dataset(limit = np.inf):
             line = reader.readline()
             if line:
                 line_instance = Paragraph(line)
-                st_time = time.time()
                 timer = line_instance.find_all_recurring_spans()
-                mini_timer += time.time() - st_time
                 for i in range(7):
                     timer_all[i] += timer[i]
                 max_ngram = line_instance.sample_ngrams_to_mask()
                 max_histogram[max_ngram] += 1
-
                 line_instance.mask_recurring_spans()
                 # TODO: Maybe here it's a good place to add (stochaticly) to train/validation
                 count += 1
             else: break
-        print(mini_timer)
         return timer_all, max_histogram
 
 class Paragraph:
@@ -97,14 +91,13 @@ class Paragraph:
         self.spans = list(self.tokenizer.span_tokenize(line))
         self.word_list = [line[start:end] for (start, end) in self.spans]
         self.tokens_count = len(self.word_list)
-        self.is_masked = [0] * self.tokens_count
+        self.is_masked = [False] * self.tokens_count
         self.mask = mask
         self.mask_len = len(mask)
 
     def find_all_recurring_spans(self):
-        ngrams_pos = {}
+        self.ngrams_pos = {}
         timer = {i: 0 for i in range(7)}
-        mini_timer = [0, 0]
         for n in range(MAX_SPAN_LEN, 0, -1):
             st_time = time.time()
 
@@ -117,40 +110,48 @@ class Paragraph:
             self.ngrams_list = {}
             for k, c in takewhile(lambda v: v[1] > 1, ngram_counter.most_common()):
                 self.ngrams_list[k] = c
-            if len(self.ngrams_list) == 0:
-                continue
+            if len(self.ngrams_list) == 0: continue
             time_1 = time.time()
             timer[1] += time_1 - time_0
 
             # interval 2:
             self.filter_irrelevant_spans()
-            if len(self.ngrams_list) == 0:
-                continue
+            if len(self.ngrams_freq) == 0: continue
             time_2 = time.time()
             timer[2] += time_2 - time_1
 
+            self.ngram_pos_n = {}
+            for ng in self.ngrams_freq:
+                contained = [True for larger_ng in self.ngrams_pos.keys() if self.is_contained(ng, larger_ng)]
+                if len(contained) == 0: self.ngram_pos_n[ng] = []
+
+            if len(self.ngram_pos_n) == 0: continue
 
             # interval 3:
-            self.find_ngrams_positions()
             time_3 = time.time()
             timer[3] += time_3 - time_2
 
             # interval 4:
-            for ng in self.ngram_pos_n:
-                self.remove_duplicate_ngrams(ng)
             time_4 = time.time()
             timer[4] += time_4 - time_3
 
             # interval 5:
-            ngrams_pos.update({ng: l for ng, l in self.ngram_pos_n.items() if len(l) > 1})
+            self.ngrams_pos.update(self.ngram_pos_n)
             time_5 = time.time()
             timer[5] += time_5 - time_4
-
-        self.ngram_pos = ngrams_pos
+        self.find_ngrams_positions()
         return timer
 
     def get_ngrams_positions(self):
-        return self.ngram_pos
+        return self.ngrams_pos
+
+    def is_contained(self, ng1, ng2):
+        # check if ng1 is contained in ng2
+        if len(ng1) <= len(ng2):
+            for i in range(len(ng2)):
+                if ng1 == ng2[i: i + len(ng1)]:
+                    return True
+        return False
 
     def filter_irrelevant_spans(self):
         if len(self.ngrams_list) == 0: return
@@ -167,7 +168,7 @@ class Paragraph:
                    lambda t: all(ch.isascii() for ch in t),
                    # not only one words
                    lambda t: any(len(ch) > 1 for ch in t),
-                   #
+                   # does not composed of stopwords only
                    lambda t: any(ch not in STOPWORDS_LIST for ch in t),
                    lambda t: all(t[0] != ch and t[-1] != ch for ch in bad_suffixes_and_prefixes),
                    lambda t: all(t.count(ch) % 2 == 0 for ch in doubles),
@@ -179,15 +180,16 @@ class Paragraph:
             self.ngrams_freq[k] = self.ngrams_list[k]
 
     def find_ngrams_positions(self):
+        if len(self.ngrams_pos) == 0: return
         num_words = len(self.word_list)
-        ngram_list = list(map(tuple, self.ngrams_list.keys()))
-        self.ngram_pos_n = {ng: [] for ng in ngram_list}
-        ngram_wc = list(map(len, ngram_list))
+        ngram_pos = list(map(tuple, self.ngrams_pos.keys()))
+        # self.ngram_pos_n = {ng: [] for ng in ngram_list}
+        ngram_wc = list(map(len, self.ngrams_pos))
         word_list = list(map(lambda w: w.lower(), self.word_list))
         for idx, word in enumerate(word_list):
-            for ngram_idx, ng in enumerate(ngram_list):
+            for ngram_idx, ng in enumerate(ngram_pos):
                 if idx + ngram_wc[ngram_idx] <= num_words and word_list[idx: idx + ngram_wc[ngram_idx]] == list(ng):
-                    self.ngram_pos_n[ng].append((idx, (self.spans[idx][0], self.spans[idx + ngram_wc[ngram_idx] - 1][1])))
+                    self.ngrams_pos[ng].append((idx, (self.spans[idx][0], self.spans[idx + ngram_wc[ngram_idx] - 1][1])))
 
 
     def remove_duplicate_ngrams(self, ng):
@@ -211,7 +213,7 @@ class Paragraph:
         ngrams_to_mask = []
         spans_to_ngrams = {}
         max_ngram = 0
-        for ng, occur_lst in self.ngram_pos.items():
+        for ng, occur_lst in self.ngrams_pos.items():
             max_ngram = max(max_ngram, len(ng))
             if np.random.rand() <= p:
                 label_idx = np.random.randint(len(occur_lst))
@@ -244,10 +246,11 @@ class Paragraph:
 
 
 if __name__ == "__main__":
-    num_runs = 1000
+    num_runs = 2
     st_time = time.time()
     timer, max_histogram = create_dataset(num_runs)
     en_time = time.time()
     print("%d Lines were processed in %.2f seconds" % (num_runs, (en_time - st_time)))
     print(timer)
     print(max_histogram)
+
