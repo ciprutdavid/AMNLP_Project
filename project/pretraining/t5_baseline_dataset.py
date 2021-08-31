@@ -11,6 +11,7 @@ LOCAL_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/0"
 
 class WikiDataset(Dataset):
     def __init__(self, train, tokenizer, device):
+        super(WikiDataset, self).__init__()
         self.train = train
         self.tokenizer = tokenizer
         self.device = device
@@ -63,8 +64,8 @@ class WikiDataset(Dataset):
         return f"<extra_id_{id}>"
 
 
-def WikiDataloader(data, tokenizer, device='cuda', batch_size=100):
-    return DataLoader(WikiDataset(data, tokenizer, device=device), batch_size=batch_size)
+def WikiDataloader(data, tokenizer, device='cuda', batch_size=100,shuffle=True):
+    return DataLoader(WikiDataset(data, tokenizer, device=device), batch_size=batch_size,shuffle=shuffle)
 
 
 # if __name__ == "__main__":
