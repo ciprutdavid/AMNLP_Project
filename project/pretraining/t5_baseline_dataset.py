@@ -64,7 +64,7 @@ class WikiDataset(Dataset):
 
 
 def WikiDataloader(data, tokenizer, device='cuda', batch_size=100,num_workers=0):
-    return DataLoader(WikiDataset(data, tokenizer, device=device), batch_size=batch_size,num_workers=num_workers)
+    return DataLoader(WikiDataset(data, tokenizer, device=device), batch_size=batch_size,num_workers=num_workers,multiprocessing_context='spawn')
 
 
 # if __name__ == "__main__":
