@@ -1,51 +1,39 @@
-from transformers import T5Config, T5Model, T5Tokenizer
+from transformers import T5Config, T5Model, T5Tokenizer, T5TokenizerFast
 import numpy as np
 import torch
+from torch.utils.data import Dataset, DataLoader
+from torchvision.transforms import Compose
+import time
 
-config = {
-    "train_path": "",
-    "val_path": "",
-    "tokenizer": T5Tokenizer.from_pretrained("t5-base")
-}
+SERVER_PATH = "/home/yandex/AMNLP2021/davidciprut/AMNLP_Project/data/wiki/0"
+LOCAL_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/0"
 
-class T5PretrainingDataset:
-    def __init__(self, train_path, val_path, tokenizer):
-        self.train_path = train_path
-        self.val_path = val_path
+
+class WikiDataset(Dataset):
+    def __init__(self, train, tokenizer, device):
+        self.train = train
         self.tokenizer = tokenizer
-        self.train = open(self.train_path, 'r')
-        self.val = open(self.val_path, 'r')
+        self.device = device
 
-    def get_batch(self,size,type="train",device='cuda'):
-        raw_batch_X, raw_batch_y = self.get_raw_batch(size,type)
-        X = self.tokenizer(raw_batch_X,padding=True, return_tensors='pt')
-        y = self.tokenizer(raw_batch_y,padding=True, return_tensors='pt')
-        return X,y
+    def __len__(self):
+        return len(self.train)
 
-    def get_raw_batch(self, size, type="train"):
-        masked_examples = []
-        mask_labels = []
-        file_ = self.train if type == "train" else self.val
-        examples = []
-        example_num = 0
-        while example_num < size:
-            try:
-                examples.append(file_.readline())
-                example_num += 1
-            except EOFError:
-                file_.close()
-                self.train = open(self.train_path) if type == "train" else open(self.val_path)
-                break
-        for example in examples:
-            masked_example, mask_label = self.mask_paragraph(example)
-            masked_examples.append(masked_example)
-            mask_labels.append(mask_label)
-        return masked_examples, mask_labels
+    def __getitem__(self, item):
+        paragraph = self.train[item]
+        # start = time.time()
+        masked_paragraph, mask_labels = self.Mask(paragraph)
+        end = time.time()
+        # print("Masking : " + str(end-start))
+        # start = time.time()
+        tokenized_input = self.tokenizer(masked_paragraph, padding='max_length', truncation=True, return_tensors='pt',
+                                         max_length=512).to(self.device)
+        tokenized_labels = self.tokenizer(mask_labels, padding='max_length', truncation=True, return_tensors='pt',
+                                          max_length=512).to(self.device)
+        # end = time.time()
+        # print("Tokenization : " + str(end-start))
+        return tokenized_input, tokenized_labels
 
-    def extra_id(self, id):
-        return f"<extra_id_{id}>"
-
-    def mask_paragraph(self, paragraph):
+    def Mask(self, paragraph):
         mask = ""
         split = paragraph.split()
         cursor = 0
@@ -67,6 +55,44 @@ class T5PretrainingDataset:
             else:
                 cursor += 1
         if mask == "</s>":
-            self.mask_paragraph(paragraph)
+            self.Mask(paragraph)
         else:
-            return " ".join(split), mask + "</s>"
+            return  " ".join(split),  mask + "</s>"
+
+    def extra_id(self,id):
+        return f"<extra_id_{id}>"
+
+
+def WikiDataloader(data, tokenizer, device='cuda', batch_size=100,num_workers=0):
+    return DataLoader(WikiDataset(data, tokenizer, device=device), batch_size=batch_size,num_workers=num_workers)
+
+
+# if __name__ == "__main__":
+#
+#
+#     data_list = []
+#     idx = 0
+#     with open(LOCAL_PATH, 'r') as f:
+#         for line in f:
+#             data_list.append(line)
+#             idx += 1
+#             if idx == 10000:
+#                 break
+#
+#
+#     config = {
+#         "train_data": data_list,
+#         "val_data": data_list,
+#         "tokenizer": T5TokenizerFast.from_pretrained("t5-base")
+#     }
+#     batch_size=1000
+#     start = time.time()
+#     dl = WikiDataloader(data=data_list, tokenizer=T5TokenizerFast.from_pretrained("t5-base"), device='cpu',
+#                         batch_size=batch_size,num_workers=0)
+#     end = time.time()
+#     print("Dataloader Initialization : " + str(end - start))
+#
+#     start = time.time()
+#     out=next(iter(dl))
+#     end = time.time()
+#     print(f"Getting Batch data of size {batch_size} : " + str(end-start))
