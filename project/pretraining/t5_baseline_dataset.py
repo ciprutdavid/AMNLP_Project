@@ -63,8 +63,8 @@ class WikiDataset(Dataset):
         return f"<extra_id_{id}>"
 
 
-def WikiDataloader(data, tokenizer, device='cuda', batch_size=100,num_workers=0):
-    return DataLoader(WikiDataset(data, tokenizer, device=device), batch_size=batch_size,num_workers=num_workers,multiprocessing_context='spawn')
+def WikiDataloader(data, tokenizer, device='cuda', batch_size=100):
+    return DataLoader(WikiDataset(data, tokenizer, device=device), batch_size=batch_size)
 
 
 # if __name__ == "__main__":
@@ -88,7 +88,7 @@ def WikiDataloader(data, tokenizer, device='cuda', batch_size=100,num_workers=0)
 #     batch_size=1000
 #     start = time.time()
 #     dl = WikiDataloader(data=data_list, tokenizer=T5TokenizerFast.from_pretrained("t5-base"), device='cpu',
-#                         batch_size=batch_size,num_workers=0)
+#                         batch_size=batch_size,num_workers=2)
 #     end = time.time()
 #     print("Dataloader Initialization : " + str(end - start))
 #
