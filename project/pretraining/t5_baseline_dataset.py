@@ -36,9 +36,9 @@ class T5_Collate(object):
         tokenized_y = self.tokenizer(y, padding='max_length', truncation=True, max_length=512, return_tensors='pt')
         arg_dict = {
             'input_ids' : tokenized_X['input_ids'].to(self.device),
-            'attention_mask' : tokenized_X['attention_mask'].to(self.device),
-            'decoder_input_ids' : tokenized_y['input_ids'].to(self.device),
-            'decoder_attention_mask' : tokenized_y['attention_mask'].to(self.device)
+            # 'attention_mask' : tokenized_X['attention_mask'].to(self.device),
+            'labels' : tokenized_y['input_ids'].to(self.device)
+            # 'decoder_attention_mask' : tokenized_y['attention_mask'].to(self.device)
         }
         return arg_dict
 
