@@ -33,7 +33,13 @@ class T5_Collate(object):
             y.append(mask)
         tokenized_X = self.tokenizer(X, padding='max_length', truncation=True, max_length=512, return_tensors='pt')
         tokenized_y = self.tokenizer(y, padding='max_length', truncation=True, max_length=512, return_tensors='pt')
-        return tokenized_X, tokenized_y
+        arg_dict = {
+            'input_ids' : tokenized_X['input_ids'],
+            'attention_mask' : tokenized_X['attention_mask'],
+            'decoder_input_ids' : tokenized_y['input_ids'],
+            'decoder_attention_mask' : tokenized_y['attention_mask']
+        }
+        return arg_dict
 
     def mask_span(self, paragraph):
         mask = ""
