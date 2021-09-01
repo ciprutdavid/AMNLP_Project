@@ -1,10 +1,12 @@
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
-import time
 
-SERVER_PATH = "/home/yandex/AMNLP2021/davidciprut/AMNLP_Project/data/wiki/0"
-LOCAL_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/0"
-
+def load_data(load_path):
+    lines = []
+    with open(load_path,'r') as f:
+        for line in f:
+            lines.append(line)
+    return lines
 
 class WikiDataset(Dataset):
     def __init__(self, train):
@@ -16,12 +18,6 @@ class WikiDataset(Dataset):
 
     def __getitem__(self, item):
         return self.train[item]
-        # masked_paragraph, mask_labels = self.Mask(paragraph)
-        # tokenized_input = self.tokenizer(masked_paragraph,return_special_tokens_mask=True, padding='max_length', truncation=True, return_tensors='pt',
-        #                                  max_length=512).to(self.device)
-        # tokenized_labels = self.tokenizer(mask_labels, return_special_tokens_mask=True,padding='max_length', truncation=True, return_tensors='pt',
-        #                                   max_length=512).to(self.device)
-        # return tokenized_input, tokenized_labels
 
 
 class T5_Collate(object):
@@ -32,12 +28,12 @@ class T5_Collate(object):
         X = []
         y = []
         for idx in range(len(batch)):
-            masked,mask = self.mask_span(batch[idx])
+            masked, mask = self.mask_span(batch[idx])
             X.append(masked)
             y.append(mask)
-        tokenized_X = self.tokenizer(X,padding='max_length', truncation=True,max_length=512, return_tensors='pt')
-        tokenized_y = self.tokenizer(y,padding='max_length', truncation=True,max_length=512, return_tensors='pt')
-        return [tokenized_X,tokenized_y]
+        tokenized_X = self.tokenizer(X, padding='max_length', truncation=True, max_length=512, return_tensors='pt')
+        tokenized_y = self.tokenizer(y, padding='max_length', truncation=True, max_length=512, return_tensors='pt')
+        return tokenized_X, tokenized_y
 
     def mask_span(self, paragraph):
         mask = ""
@@ -68,27 +64,3 @@ class T5_Collate(object):
 
 def WikiDataloader(dataset, collate_fn, batch_size=100, shuffle=False):
     return DataLoader(WikiDataset(dataset), batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
-
-
-if __name__ == "__main__":
-    train_data = []
-    with open(LOCAL_PATH,'r') as f:
-        for line in f:
-            train_data.append(line)
-
-    from transformers import T5Config, T5Model, T5ForConditionalGeneration, T5Tokenizer, T5TokenizerFast, AutoTokenizer, \
-        AutoModel
-    import numpy as np
-    import torch
-    from torch.utils.data import Dataset, DataLoader
-    from torchvision.transforms import Compose
-    import time
-
-
-
-    tokenizer = AutoTokenizer.from_pretrained('t5-base')
-    dataset = WikiDataset(train_data)
-    collator = T5_Collate(tokenizer)
-    train_dl = WikiDataloader(train_data, collate_fn=collator, batch_size=64, shuffle=False)
-    a = next(iter(train_dl))
-    print()
