@@ -29,8 +29,15 @@ class T5_Collate(object):
         self.tokenizer = tokenizer
 
     def __call__(self, batch):
-        masked = [self.mask_span(batch[i]) for i in range(len(batch))]
-        return self.tokenizer(masked,padding='max_length', truncation=True,max_length=512, return_tensors='pt')
+        X = []
+        y = []
+        for idx in range(len(batch)):
+            masked,mask = self.mask_span(batch[idx])
+            X.append(masked)
+            y.append(mask)
+        tokenized_X = self.tokenizer(X,padding='max_length', truncation=True,max_length=512, return_tensors='pt')
+        tokenized_y = self.tokenizer(y,padding='max_length', truncation=True,max_length=512, return_tensors='pt')
+        return [tokenized_X,tokenized_y]
 
     def mask_span(self, paragraph):
         mask = ""
