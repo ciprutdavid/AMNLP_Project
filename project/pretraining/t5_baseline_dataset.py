@@ -1,8 +1,5 @@
-from transformers import T5Config, T5Model, T5Tokenizer, T5TokenizerFast
-import numpy as np
-import torch
 from torch.utils.data import Dataset, DataLoader
-from torchvision.transforms import Compose
+import numpy as np
 import time
 
 SERVER_PATH = "/home/yandex/AMNLP2021/davidciprut/AMNLP_Project/data/wiki/0"
@@ -10,31 +7,31 @@ LOCAL_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/0"
 
 
 class WikiDataset(Dataset):
-    def __init__(self, train, tokenizer, device):
+    def __init__(self, train):
         super(WikiDataset, self).__init__()
         self.train = train
-        self.tokenizer = tokenizer
-        self.device = device
 
     def __len__(self):
         return len(self.train)
 
     def __getitem__(self, item):
-        paragraph = self.train[item]
-        # start = time.time()
-        masked_paragraph, mask_labels = self.Mask(paragraph)
-        end = time.time()
-        # print("Masking : " + str(end-start))
-        # start = time.time()
-        tokenized_input = self.tokenizer(masked_paragraph, padding='max_length', truncation=True, return_tensors='pt',
-                                         max_length=512).to(self.device)
-        tokenized_labels = self.tokenizer(mask_labels, padding='max_length', truncation=True, return_tensors='pt',
-                                          max_length=512).to(self.device)
-        # end = time.time()
-        # print("Tokenization : " + str(end-start))
-        return tokenized_input, tokenized_labels
+        return self.train[item]
+        # masked_paragraph, mask_labels = self.Mask(paragraph)
+        # tokenized_input = self.tokenizer(masked_paragraph,return_special_tokens_mask=True, padding='max_length', truncation=True, return_tensors='pt',
+        #                                  max_length=512).to(self.device)
+        # tokenized_labels = self.tokenizer(mask_labels, return_special_tokens_mask=True,padding='max_length', truncation=True, return_tensors='pt',
+        #                                   max_length=512).to(self.device)
+        # return tokenized_input, tokenized_labels
 
-    def Mask(self, paragraph):
+
+class T5_Collate(object):
+    def __init__(self, tokenizer):
+        self.tokenizer = tokenizer
+
+    def __call__(self, item):
+        tokenized = self.tokenizer(self.mask_span(item),padding='max_length',max_length=512,trunctuation=True,return_tensors='pt')
+
+    def mask_span(self, paragraph):
         mask = ""
         split = paragraph.split()
         cursor = 0
@@ -55,45 +52,15 @@ class WikiDataset(Dataset):
                     cursor += span_length + 1
             else:
                 cursor += 1
-        if mask == "</s>":
-            self.Mask(paragraph)
-        else:
-            return  " ".join(split),  mask + "</s>"
+        return " ".join(split), mask + "</s>"
 
-    def extra_id(self,id):
+    def extra_id(self, id):
         return f"<extra_id_{id}>"
 
 
-def WikiDataloader(data, tokenizer, device='cuda', batch_size=100,shuffle=True):
-    return DataLoader(WikiDataset(data, tokenizer, device=device), batch_size=batch_size,shuffle=shuffle)
+def WikiDataloader(dataset, collate_fn, batch_size=100, shuffle=False):
+    return DataLoader(WikiDataset(dataset), batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
 
 
-# if __name__ == "__main__":
-#
-#
-#     data_list = []
-#     idx = 0
-#     with open(LOCAL_PATH, 'r') as f:
-#         for line in f:
-#             data_list.append(line)
-#             idx += 1
-#             if idx == 10000:
-#                 break
-#
-#
-#     config = {
-#         "train_data": data_list,
-#         "val_data": data_list,
-#         "tokenizer": T5TokenizerFast.from_pretrained("t5-base")
-#     }
-#     batch_size=1000
-#     start = time.time()
-#     dl = WikiDataloader(data=data_list, tokenizer=T5TokenizerFast.from_pretrained("t5-base"), device='cpu',
-#                         batch_size=batch_size,num_workers=2)
-#     end = time.time()
-#     print("Dataloader Initialization : " + str(end - start))
-#
-#     start = time.time()
-#     out=next(iter(dl))
-#     end = time.time()
-#     print(f"Getting Batch data of size {batch_size} : " + str(end-start))
+if __name__ == "__main__":
+    print()
