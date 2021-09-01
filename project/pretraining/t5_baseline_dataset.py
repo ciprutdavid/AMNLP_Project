@@ -29,7 +29,7 @@ class T5_Collate(object):
         self.tokenizer = tokenizer
 
     def __call__(self, item):
-        tokenized = self.tokenizer(self.mask_span(item),padding='max_length',max_length=512,trunctuation=True,return_tensors='pt')
+        return self.tokenizer(self.mask_span(item),padding='max_length',max_length=512,trunctuation=True,return_tensors='pt')
 
     def mask_span(self, paragraph):
         mask = ""
