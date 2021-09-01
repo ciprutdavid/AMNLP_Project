@@ -28,8 +28,9 @@ class T5_Collate(object):
     def __init__(self, tokenizer):
         self.tokenizer = tokenizer
 
-    def __call__(self, item):
-        return self.tokenizer(self.mask_span(item),padding='max_length',max_length=512,trunctuation=True,return_tensors='pt')
+    def __call__(self, batch):
+        masked = [self.mask_span(batch[i]) for i in range(len(batch))]
+        return self.tokenizer(masked,padding='max_length', truncation=True,max_length=512, return_tensors='pt')
 
     def mask_span(self, paragraph):
         mask = ""
@@ -63,4 +64,24 @@ def WikiDataloader(dataset, collate_fn, batch_size=100, shuffle=False):
 
 
 if __name__ == "__main__":
+    train_data = []
+    with open(LOCAL_PATH,'r') as f:
+        for line in f:
+            train_data.append(line)
+
+    from transformers import T5Config, T5Model, T5ForConditionalGeneration, T5Tokenizer, T5TokenizerFast, AutoTokenizer, \
+        AutoModel
+    import numpy as np
+    import torch
+    from torch.utils.data import Dataset, DataLoader
+    from torchvision.transforms import Compose
+    import time
+
+
+
+    tokenizer = AutoTokenizer.from_pretrained('t5-base')
+    dataset = WikiDataset(train_data)
+    collator = T5_Collate(tokenizer)
+    train_dl = WikiDataloader(train_data, collate_fn=collator, batch_size=64, shuffle=False)
+    a = next(iter(train_dl))
     print()
