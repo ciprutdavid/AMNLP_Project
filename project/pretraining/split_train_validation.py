@@ -2,7 +2,7 @@ import numpy as np
 import json
 
 PROCESSED_DATA_PATH = "/home/yandex/AMNLP2021/davidciprut/AMNLP_Project/data/wiki/processed"
-VAL_INDICES_PATH  ="../data/val_indices.json"
+VAL_INDICES_PATH  ="/home/yandex/AMNLP2021/davidciprut/AMNLP_Project/project/data/val_indices.json"
 VALIDATION_SIZE = 500
 PROCESSED_DATA_SIZE = 17610994
 
@@ -12,7 +12,7 @@ def select_validation_indices(len_of_processed_data = PROCESSED_DATA_SIZE, valid
     with open(VAL_INDICES_PATH, 'w+') as f:
         json.dump(val_indices_dict, f)
 
-def split_train_validation(OUTPUT_DIR = "../data/"):
+def split_train_validation(OUTPUT_DIR = "/home/yandex/AMNLP2021/davidciprut/AMNLP_Project/project/data/"):
     with open(OUTPUT_DIR + "val_indices.json") as f:
         val_dict = json.load(f)
     val_indices = val_dict['Validation_indices']
