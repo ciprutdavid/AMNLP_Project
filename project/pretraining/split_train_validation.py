@@ -1,12 +1,12 @@
 import numpy as np
 import json
 
-PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
+PROCESSED_DATA_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/processed"
 TRAIN_DATA_PATH = "E:/Studies/TAU/NLP/train"
 VAL_DATA_PATH  = "E:/Studies/TAU/NLP/test"
 VAL_INDICES_PATH  ="../data/val_indices.json"
 VALIDATION_SIZE = 500
-PROCESSED_DATA_SIZE = 17889082
+PROCESSED_DATA_SIZE = 17610994
 
 def select_validation_indices(len_of_processed_data = PROCESSED_DATA_SIZE, validation_size = VALIDATION_SIZE):
     val_indices = sorted(np.random.choice(len_of_processed_data, validation_size))
@@ -35,7 +35,8 @@ def split_train_validation(OUTPUT_DIR = "../data/"):
         val_data.writelines(val_lines)
 
 if __name__ == '__main__':
-    select_validation_indices()
+    split_train_validation()
+    # select_validation_indices()
 
 
 

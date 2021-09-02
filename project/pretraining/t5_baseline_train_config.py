@@ -1,37 +1,40 @@
 import torch
-from transformers import Trainer, T5Model, T5Config, AutoTokenizer,TrainingArguments
+from transformers import Trainer, T5Model, T5Config, AutoTokenizer,TrainingArguments, T5ForConditionalGeneration
 import t5_baseline_dataset as baseline_data
 
 
 
-TRAIN_PATH = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/train"
-VAL_PATH = "/content/drive/MyDrive/Colab Notebooks/AMNLP_project/data/val"
+TRAIN_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/0"
+VAL_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/0"
 train_data = baseline_data.load_data(TRAIN_PATH)
 val_data = baseline_data.load_data(VAL_PATH)
-torch.cuda.set_device(0)
-model_config = T5Config()
-model = T5Model(model_config).to('cuda')
 tokenizer = AutoTokenizer.from_pretrained('t5-base', cache_dir="t5_baseline_pretrain_output_dir/tokenizer_cache/")
+model_config = T5Config(decoder_start_token_id=tokenizer.convert_tokens_to_ids(['<pad>'])[0])
+model = T5ForConditionalGeneration(model_config).to('cpu')
 args = {
     'output_dir':"t5_baseline_pretrain_output_dir/",
     'do_eval':True,
     'evaluation_strategy':"steps",
-    'num_train_epochs':20,
-    'save_steps':1000,
+    'num_train_epochs':2,
+    'max_steps':20000,
+    'save_steps':500,
     'save_total_limit':10,
     'eval_steps':1000,
     'dataloader_pin_memory':False,
-    'per_device_train_batch_size':8
+    'per_device_train_batch_size':8,
+    'gradient_accumulation_steps' : 32,
+    'warmup_ratio': 0.1
 }
 
 trainer_config ={
     'model': model,
     'args':TrainingArguments(**args),
-    'data_collator':baseline_data.T5_Collate(tokenizer,'cuda'),
+    'data_collator':baseline_data.T5_Collate(tokenizer,'cpu'),
     'train_dataset':baseline_data.WikiDataset(train_data),
     'eval_dataset':baseline_data.WikiDataset(val_data),
-    'tokenizer':tokenizer,
+    'tokenizer':tokenizer
 }
 
 if __name__ == "__main__":
-    print()
+    trainer = Trainer(**trainer_config)
+    trainer.train()
