@@ -1,9 +1,7 @@
 import numpy as np
 import json
 
-PROCESSED_DATA_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/processed"
-TRAIN_DATA_PATH = "E:/Studies/TAU/NLP/train"
-VAL_DATA_PATH  = "E:/Studies/TAU/NLP/test"
+PROCESSED_DATA_PATH = "/home/yandex/AMNLP2021/davidciprut/AMNLP_Project/data/wiki/processed"
 VAL_INDICES_PATH  ="../data/val_indices.json"
 VALIDATION_SIZE = 500
 PROCESSED_DATA_SIZE = 17610994

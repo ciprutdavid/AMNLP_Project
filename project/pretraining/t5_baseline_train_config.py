@@ -2,10 +2,9 @@ import torch
 from transformers import Trainer, T5Model, T5Config, AutoTokenizer,TrainingArguments, T5ForConditionalGeneration
 import t5_baseline_dataset as baseline_data
 
+TRAIN_PATH = "/home/yandex/AMNLP2021/davidciprut/AMNLP_Project/project/data/train"
+VAL_PATH = "/home/yandex/AMNLP2021/davidciprut/AMNLP_Project/project/data/test"
 
-
-TRAIN_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/0"
-VAL_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/0"
 train_data = baseline_data.load_data(TRAIN_PATH)
 val_data = baseline_data.load_data(VAL_PATH)
 tokenizer = AutoTokenizer.from_pretrained('t5-base', cache_dir="t5_baseline_pretrain_output_dir/tokenizer_cache/")
