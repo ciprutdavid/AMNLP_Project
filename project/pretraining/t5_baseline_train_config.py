@@ -28,7 +28,10 @@ trainer_config ={
     'model': model,
     'args':TrainingArguments(**args),
     'data_collator':baseline_data.T5_Collate(tokenizer,'cuda'),
-    'train_dataset':train_data,
-    'eval_dataset':val_data,
+    'train_dataset':baseline_data.WikiDataset(train_data),
+    'eval_dataset':baseline_data.WikiDataset(val_data),
     'tokenizer':tokenizer,
 }
+
+if __name__ == "__main__":
+    print()
