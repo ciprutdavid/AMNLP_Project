@@ -8,7 +8,7 @@ import time
 import os
 from collections import Counter, OrderedDict
 from itertools import dropwhile, takewhile
-from functools import reduce
+from typing import Union
 
 DATA_PATH = "E:/Studies/TAU/NLP/all"
 PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
@@ -63,7 +63,7 @@ def has_recurring_span(paragraph):
 def strip_punctuation(string):
     return re.sub(r'[.,;:!?]', '', string)
 
-def create_dataset(limit = np.inf):
+def create_dataset(limit:Union[float, int] = np.inf):
     with open(PROCESSED_DATA_PATH, 'r') as reader:
         count = 0
         timer_all = {i: 0 for i in range(7)}
@@ -236,6 +236,7 @@ class Paragraph:
         dataset = {
             'Masked' : []
         }
+        num_masked = len(self.spans_to_ngrams.items())
         for (s, e), ng in self.spans_to_ngrams.items():
             masked_line += self.line[last_idx:s] + self.mask
             last_idx = e
@@ -245,7 +246,7 @@ class Paragraph:
 
 
 if __name__ == "__main__":
-    num_runs = 10000
+    num_runs = 1000
     st_time = time.time()
     timer, max_histogram = create_dataset(num_runs)
     en_time = time.time()
