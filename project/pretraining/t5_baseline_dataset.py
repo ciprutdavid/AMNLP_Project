@@ -1,12 +1,14 @@
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 
+
 def load_data(load_path):
     lines = []
-    with open(load_path,'r') as f:
+    with open(load_path, 'r') as f:
         for line in f:
             lines.append(line)
     return lines
+
 
 class WikiDataset(Dataset):
     def __init__(self, train):
@@ -21,7 +23,7 @@ class WikiDataset(Dataset):
 
 
 class T5_Collate(object):
-    def __init__(self, tokenizer,device='cuda'):
+    def __init__(self, tokenizer, device='cuda'):
         self.tokenizer = tokenizer
         self.device = device
 
@@ -35,10 +37,10 @@ class T5_Collate(object):
         tokenized_X = self.tokenizer(X, padding='max_length', truncation=True, max_length=512, return_tensors='pt')
         tokenized_y = self.tokenizer(y, padding='max_length', truncation=True, max_length=512, return_tensors='pt')
         arg_dict = {
-            'input_ids' : tokenized_X['input_ids'].to(self.device),
-            'attention_mask' : tokenized_X['attention_mask'].to(self.device),
-            'decoder_input_ids' : tokenized_y['input_ids'].to(self.device),
-            'decoder_attention_mask' : tokenized_y['attention_mask'].to(self.device)
+            'input_ids': tokenized_X['input_ids'].to(self.device),
+            'attention_mask': tokenized_X['attention_mask'].to(self.device),
+            'decoder_input_ids': tokenized_y['input_ids'].to(self.device),
+            'decoder_attention_mask': tokenized_y['attention_mask'].to(self.device)
         }
         return arg_dict
 
