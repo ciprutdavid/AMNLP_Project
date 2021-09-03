@@ -2,8 +2,8 @@ import torch
 from transformers import Trainer, T5Model, T5Config, AutoTokenizer, TrainingArguments, T5ForConditionalGeneration
 import t5_baseline_dataset as baseline_data
 
-TRAIN_PATH = "/home/yandex/AMNLP2021/davidciprut/AMNLP_Project/project/data/train"
-VAL_PATH = "/home/yandex/AMNLP2021/davidciprut/AMNLP_Project/project/data/test"
+TRAIN_PATH = "../data/train"
+VAL_PATH = "../data/test"
 
 torch.cuda.device(0)
 train_data = baseline_data.load_data(TRAIN_PATH)
