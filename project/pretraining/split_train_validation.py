@@ -5,6 +5,7 @@ PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
 TRAIN_DATA_PATH = "E:/Studies/TAU/NLP/train"
 VAL_DATA_PATH  = "E:/Studies/TAU/NLP/test"
 VAL_INDICES_PATH  ="../data/val_indices.json"
+
 VALIDATION_SIZE = 500
 PROCESSED_DATA_SIZE = 17610994
 
