@@ -5,7 +5,7 @@ import t5_baseline_dataset as baseline_data
 TRAIN_PATH = "../data/train"
 VAL_PATH = "../data/test"
 
-torch.cuda.device(0)
+torch.cuda.device(1)
 train_data = baseline_data.load_data(TRAIN_PATH)
 val_data = baseline_data.load_data(VAL_PATH)
 tokenizer = AutoTokenizer.from_pretrained('t5-base', cache_dir="t5_baseline_pretrain_output_dir/tokenizer_cache/")
