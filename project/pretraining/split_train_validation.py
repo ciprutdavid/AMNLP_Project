@@ -22,7 +22,7 @@ def split_train_validation(OUTPUT_DIR = "../data/"):
     max_val_idx = val_indices[-1]
     train_data = open(OUTPUT_DIR + "train", 'w+')
     val_lines = []
-    with open(PROCESSED_DATA_PATH, 'r') as data:
+    with open(OUTPUT_DIR + "./processed", 'r') as data:
         line_counter = 0
         for line in data:
             if line_counter > max_val_idx or line_counter != val_indices[0]:
