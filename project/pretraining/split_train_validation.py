@@ -36,7 +36,7 @@ def split_train_validation(OUTPUT_DIR = "../data/"):
         val_data.writelines(val_lines)
 
 if __name__ == '__main__':
-    split_train_validation("E:/Studies/TAU/NLP/")
+    split_train_validation()
     # select_validation_indices()
 
 
