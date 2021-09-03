@@ -1,7 +1,7 @@
 import numpy as np
 import json
 
-PROCESSED_DATA_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/wiki/processed"
+PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
 TRAIN_DATA_PATH = "E:/Studies/TAU/NLP/train"
 VAL_DATA_PATH  = "E:/Studies/TAU/NLP/test"
 VAL_INDICES_PATH  ="../data/val_indices.json"
@@ -15,7 +15,7 @@ def select_validation_indices(len_of_processed_data = PROCESSED_DATA_SIZE, valid
         json.dump(val_indices_dict, f)
 
 def split_train_validation(OUTPUT_DIR = "../data/"):
-    with open(OUTPUT_DIR + "val_indices.json") as f:
+    with open("../data/val_indices.json") as f:
         val_dict = json.load(f)
     val_indices = val_dict['Validation_indices']
     max_val_idx = val_indices[-1]
@@ -35,7 +35,7 @@ def split_train_validation(OUTPUT_DIR = "../data/"):
         val_data.writelines(val_lines)
 
 if __name__ == '__main__':
-    split_train_validation()
+    split_train_validation("E:/Studies/TAU/NLP/")
     # select_validation_indices()
 
 
