@@ -1,6 +1,6 @@
 import torch
 from transformers import Trainer, T5Model, T5Config, AutoTokenizer, TrainingArguments, T5ForConditionalGeneration
-import t5_baseline_dataset as baseline_data
+import t5_baseline_pretrain_dataset as baseline_data
 
 TRAIN_PATH = "../data/train"
 VAL_PATH = "../data/test"
