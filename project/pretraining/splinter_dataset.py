@@ -1,7 +1,7 @@
 import time
 import numpy as np
 import torch
-from project.pretraining.paragraph import  Paragraph
+from paragraph import Paragraph
 from torch.utils.data import Dataset, DataLoader
 import pickle
 
