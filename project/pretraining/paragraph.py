@@ -8,10 +8,10 @@ import time
 import os
 from collections import Counter, OrderedDict
 from itertools import dropwhile, takewhile
-from typing import Union
+from functools import reduce
 
 DATA_PATH = "E:/Studies/TAU/NLP/all"
-PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
+
 STOPWORDS_LIST = stopwords.words('english') + ['-', '"', '(', ')', '[' ,']']
 nltk.download('punkt')
 TRAIN_DATA_PATH = "E:/Studies/TAU/NLP/train"
@@ -63,7 +63,7 @@ def has_recurring_span(paragraph):
 def strip_punctuation(string):
     return re.sub(r'[.,;:!?]', '', string)
 
-def create_dataset(limit:Union[float, int] = np.inf):
+def create_dataset(limit = np.inf):
     with open(PROCESSED_DATA_PATH, 'r') as reader:
         count = 0
         timer_all = {i: 0 for i in range(7)}
@@ -84,7 +84,7 @@ def create_dataset(limit:Union[float, int] = np.inf):
         return timer_all, max_histogram
 
 class Paragraph:
-    def __init__(self, line, mask = "[QUESTION]"):
+    def __init__(self, line, mask):
         self.line = line
         self.tokenizer = WordPunctTokenizer()
         line = self.line.lower()
@@ -241,16 +241,5 @@ class Paragraph:
             masked_line += self.line[last_idx:s] + self.mask
             last_idx = e
             # 'index' is the char-wise location in "masked_line".
-            dataset['Masked'].append({'label' : ng, 'index' : len(masked_line)})
+            dataset['Masked'].append({'label' : ng, 'index' : len(masked_line) - 1})
         self.masked_line = masked_line + self.line[last_idx:]
-
-
-if __name__ == "__main__":
-    num_runs = 1000
-    st_time = time.time()
-    timer, max_histogram = create_dataset(num_runs)
-    en_time = time.time()
-    print("%d Lines were processed in %.2f seconds" % (num_runs, (en_time - st_time)))
-    print(timer)
-    print(max_histogram)
-
