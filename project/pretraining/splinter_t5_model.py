@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from transformers import T5EncoderModel, T5Config
 
 MASK_ID = 32099  # mask id of <extra_id_0>
-DIM = 512
+DIM = 512 # seq_len
 
 
 class SplinterT5Model(torch.nn.Module):
