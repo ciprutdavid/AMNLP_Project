@@ -5,7 +5,8 @@ from paragraph import Paragraph
 from torch.utils.data import Dataset, DataLoader
 import pickle
 
-PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
+# PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
+PROCESSED_DATA_PATH = "../data/processed"
 
 class SplinterCollate:
     def __init__(self, tokenizer, device='cuda'):

@@ -12,8 +12,8 @@ from functools import reduce
 
 DATA_PATH = "E:/Studies/TAU/NLP/all"
 
-STOPWORDS_LIST = stopwords.words('english') + ['-', '"', '(', ')', '[' ,']']
 nltk.download('punkt')
+STOPWORDS_LIST = stopwords.words('english') + ['-', '"', '(', ')', '[' ,']']
 TRAIN_DATA_PATH = "E:/Studies/TAU/NLP/train"
 VAL_DATA_PATH  = "E:/Studies/TAU/NLP/test"
 VAL_SET_SIZE = 500
