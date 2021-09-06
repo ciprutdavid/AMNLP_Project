@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from transformers import T5EncoderModel, T5Config
 
 MASK_ID = 32099  # mask id of <extra_id_0>
-DIM = 512 # seq_len
+DIM = 512  # seq_len
 
 
 class SplinterT5Model(torch.nn.Module):
@@ -22,7 +22,13 @@ class SplinterT5Model(torch.nn.Module):
         X_T = self.t5_encoder(input_ids)
         X = torch.transpose(X_T, 2, 1)
 
-        start_prob = F.softmax((X_T @ self.S @ X).view(-1, DIM)[question_indices,:] * relevant_attention_mask,-1)
-        end_prob = F.softmax((X_T @ self.S @ X).view(-1, DIM)[question_indices,:] * relevant_attention_mask,-1)
+        start_prob = F.softmax((X_T @ self.S @ X).view(-1, DIM)[question_indices, :] * relevant_attention_mask, -1)
+        end_prob = F.softmax((X_T @ self.S @ X).view(-1, DIM)[question_indices, :] * relevant_attention_mask, -1)
 
         return start_prob, end_prob
+
+
+def splinter_t5_loss(start_prob, end_prob, start_ground_truth, end_ground_truth):
+    start_loss = F.binary_cross_entropy(start_prob, start_ground_truth)
+    end_loss = F.binary_cross_entropy(end_prob, end_ground_truth)
+    return start_loss + end_loss
