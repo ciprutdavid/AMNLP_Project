@@ -5,8 +5,8 @@ from paragraph import Paragraph
 from torch.utils.data import Dataset, DataLoader
 import pickle
 
-#PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
-PROCESSED_DATA_PATH = "../data/processed"
+PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
+# PROCESSED_DATA_PATH = "../data/processed"
 
 PROCESSED_DATA_SIZE = 17610994
 
@@ -52,6 +52,7 @@ class SplinterDataset(Dataset):
             # timer_all = {i: 0 for i in range(7)} # debug usage only
             # max_histogram = [0] * 11  # debug usage only
             st_time = time.time()
+            file_idx = 0
             while count < self.num_runs:
                 line = reader.readline()
                 if line:
@@ -63,6 +64,7 @@ class SplinterDataset(Dataset):
                     # max_histogram[max_ngram] += 1
                     line_instance.sample_ngrams_to_mask()
                     line_instance.mask_recurring_spans()
+                    # paragraph_entry = line_instance.get_splinter_data()
                     self.all_line_ob.append(line_instance)
                     # TODO: Maybe here it's a good place to add (stochasticly) to train/validation
                     count += 1
@@ -70,10 +72,10 @@ class SplinterDataset(Dataset):
                         ovrl_time = time.time() - st_time
                         time_left =  (ovrl_time/count) * (PROCESSED_DATA_SIZE - count)
                         print("%d (%.2f%%) paragraphs were processed at %.2fs (%.2fs per line)" %
-                              (count, count/PROCESSED_DATA_SIZE, ovrl_time, ovrl_time/count))
+                              (count, 100 * count/PROCESSED_DATA_SIZE, ovrl_time, ovrl_time/count))
                         print("     Expected to finish in %.2f minutes" % (time_left / 60))
-                        if count % 1000000 == 0:
-                            with open('all_paragraphs_test.pkl', 'wb+') as out_f:
+                        if count % 100000 == 0:
+                            with open('all_paragraphs_{}.pkl'.format(file_idx), 'wb+') as out_f:
                                 pickle.dump(self.all_line_ob, out_f, pickle.HIGHEST_PROTOCOL)
                 else:
                     break
