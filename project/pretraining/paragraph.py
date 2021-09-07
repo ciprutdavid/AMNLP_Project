@@ -253,11 +253,11 @@ class Paragraph:
                 return (i, i + len(pattern))
         return -1
 
-    def get_splinter_data(self):
+    def get_paragraph_data(self):
         out_dict = {'line' : "",
                     'masked_line' : "",
                     'labels' : [], # Tensor of dim Q*512 [of_ngram_#1, of_ngram_#2, ... ]
-                    }
+                    'mask2label' :[]} # [ng1, ng2, ng1, ng1]
 
         tokenized_rep = tokenizer(self.masked_line)
         for ngram in self.ngrams_pos:
