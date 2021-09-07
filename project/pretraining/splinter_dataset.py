@@ -66,13 +66,13 @@ class SplinterDataset(Dataset):
                     self.all_line_ob.append(line_instance)
                     # TODO: Maybe here it's a good place to add (stochasticly) to train/validation
                     count += 1
-                    if count % 50000:
+                    if count % 50000 == 0:
                         ovrl_time = time.time() - st_time
                         time_left =  (ovrl_time/count) * (PROCESSED_DATA_SIZE - count)
                         print("%d (%.2f%%) paragraphs were processed at %.2fs (%.2fs per line)" %
                               (count, count/PROCESSED_DATA_SIZE, ovrl_time, ovrl_time/count))
                         print("     Expected to finish in %.2f minutes" % (time_left / 60))
-                        if count % 1000000:
+                        if count % 1000000 == 0:
                             with open('all_paragraphs_test.pkl', 'wb+') as out_f:
                                 pickle.dump(self.all_line_ob, out_f, pickle.HIGHEST_PROTOCOL)
                 else:
