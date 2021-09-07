@@ -5,8 +5,10 @@ from paragraph import Paragraph
 from torch.utils.data import Dataset, DataLoader
 import pickle
 
-# PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
+#PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
 PROCESSED_DATA_PATH = "../data/processed"
+
+PROCESSED_DATA_SIZE = 17610994
 
 class SplinterCollate:
     def __init__(self, tokenizer, device='cuda'):
@@ -41,8 +43,6 @@ class SplinterDataset(Dataset):
         st_time = time.time()
         self.train = self._create_dataset()
         en_time = time.time()
-        with open('all_paragraphs_test.pkl', 'wb+') as out_f:
-            pickle.dump(self.all_line_ob, out_f, pickle.HIGHEST_PROTOCOL)
         print("%d Lines were processed in %.2f seconds" % (num_runs, (en_time - st_time)))
 
 
@@ -51,6 +51,7 @@ class SplinterDataset(Dataset):
             count = 0
             # timer_all = {i: 0 for i in range(7)} # debug usage only
             # max_histogram = [0] * 11  # debug usage only
+            st_time = time.time()
             while count < self.num_runs:
                 line = reader.readline()
                 if line:
@@ -65,6 +66,15 @@ class SplinterDataset(Dataset):
                     self.all_line_ob.append(line_instance)
                     # TODO: Maybe here it's a good place to add (stochasticly) to train/validation
                     count += 1
+                    if count % 50000:
+                        ovrl_time = time.time() - st_time
+                        time_left =  (ovrl_time/count) * (PROCESSED_DATA_SIZE - count)
+                        print("%d (%.2f%%) paragraphs were processed at %.2fs (%.2fs per line)" %
+                              (count, count/PROCESSED_DATA_SIZE, ovrl_time, ovrl_time/count))
+                        print("     Expected to finish in %.2f minutes" % (time_left / 60))
+                        if count % 1000000:
+                            with open('all_paragraphs_test.pkl', 'wb+') as out_f:
+                                pickle.dump(self.all_line_ob, out_f, pickle.HIGHEST_PROTOCOL)
                 else:
                     break
 
@@ -75,4 +85,4 @@ class SplinterDataset(Dataset):
         pass
 
 if __name__ == '__main__':
-    ds = SplinterDataset(10000)
+    ds = SplinterDataset()
