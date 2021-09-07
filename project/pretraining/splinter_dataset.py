@@ -47,7 +47,7 @@ class SplinterDataset(Dataset):
 
 
     def _create_dataset(self):
-        with open(PROCESSED_DATA_PATH, 'r') as reader:
+        with open(PROCESSED_DATA_PATH, 'r', errors='ignore') as reader:
             count = 0
             # timer_all = {i: 0 for i in range(7)} # debug usage only
             # max_histogram = [0] * 11  # debug usage only
@@ -75,4 +75,4 @@ class SplinterDataset(Dataset):
         pass
 
 if __name__ == '__main__':
-    ds = SplinterDataset(num_runs=1000)
+    ds = SplinterDataset(10000)
