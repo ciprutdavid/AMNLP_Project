@@ -8,7 +8,7 @@ import t5_baseline_pretrain_dataset as baseline_data
 class SplinterTokenizer:
 
     def __init__(self):
-        self.word_punc_tokenizer = WordPunctTokenizer()
+        self.word_tokenizer = TreebankWordTokenizer()
         self.t5_tokenizer = AutoTokenizer.from_pretrained('t5-base')
 
     def __call__(self, text, padding='max_length', truncation=True, max_length=512, return_tensors='pt'):
@@ -26,7 +26,8 @@ class SplinterTokenizer:
 
     def tokenize(self, text):
         split_tokens = []
-        for token in self.word_punc_tokenizer.tokenize(text):
+        for token in self.word_tokenizer.tokenize(text):
             for sub_token in self.t5_tokenizer.tokenize(token):
                 split_tokens.append(sub_token)
         return split_tokens
+
