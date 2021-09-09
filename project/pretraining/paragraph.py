@@ -23,7 +23,8 @@ VAL_DATA_PATH  = "E:/Studies/TAU/NLP/test"
 VAL_SET_SIZE = 500
 MAX_SPAN_LEN = 10
 MAX_TOKENS_TO_MASK = 30
-tokenizer = SplinterTokenizer()
+MAX_LENGTH = 512
+
 QUESTION_TOKEN = "<extra_id_0>"
 QUESTION_ID = 32099
 
@@ -201,7 +202,7 @@ class Paragraph:
                     spans_to_ngrams[pos] = ng
         self.ngrams_to_mask = ngrams_to_mask
         self.spans_to_ngrams = OrderedDict(sorted(spans_to_ngrams.items()))
-        return max_ngram
+        return max_ngram, len(self.spans_to_ngrams)
 
     def mask_recurring_spans(self):
         if len(self.spans_to_ngrams) == 0: return
@@ -242,30 +243,30 @@ class Paragraph:
         pos = self.handeler(tokenized_rep, ngram_str + ")")
         return pos
 
-    def get_splinter_data(self):
-        out_dict = {'line' : self.line,
-                    'masked_line' : self.masked_line,
-                    'labels' : {}, # Tensor of dim Q*512 [of_ngram_#1, of_ngram_#2, ... ]
+    def get_splinter_data(self, tokenizer):
+        out_dict = {'masked_line' : self.masked_line,
+                    'labels' : {}, # Tensor of dim Q*512 [of_Q_#1, of_Q_#2, ... ]
                     'mask2label' :[]} # [ng1, ng2, ng1, ng1]
 
-        tokenized_rep = tokenizer(self.masked_line.lower()).input_ids
+        tokenized_rep = tokenizer(self.masked_line.lower())
+        tokenized_line = tokenized_rep.input_ids
+        if len(tokenized_line) > MAX_LENGTH:
+            print("debug print")
+            return None
         debug_counter = 0
 
-        en_time = 0
         for ngram in self.ngrams_pos:
             if ngram not in self.chosen_ngrams:
                 continue
             debug_counter += len(self.ngrams_pos[ngram])
             ngram_str = ' '.join(ngram)
-            st_time = time.time()
             tokenized_ngram = tokenizer(ngram_str, padding=False).input_ids[:-1]
-            pos = self._get_range_indices(tokenized_rep, tokenized_ngram)
-            en_time += time.time() - st_time
+            pos = self._get_range_indices(tokenized_line, tokenized_ngram)
             if pos == -1:
-                return None, en_time
-                pos = self._handle_edge_cases(tokenized_rep, ngram_str)
-                if pos == -1:
-                    return None, en_time
+                return None
+                # pos = self._handle_edge_cases(tokenized_rep, ngram_str)
+                # if pos == -1:
+                #     return None, en_time
             out_dict['labels'][ngram] = pos
             # need to save questions that are relevant to this label
         out_dict['mask2label'] = list(self.spans_to_ngrams.values())
@@ -273,7 +274,7 @@ class Paragraph:
         # #for debug
         # assert(debug_counter - len(out_dict['labels'].keys()) == len(out_dict['mask2label']))
 
-        return out_dict, en_time
+        return out_dict
 
 
 
