@@ -3,12 +3,14 @@ import numpy as np
 import nltk
 from nltk.corpus import stopwords
 from nltk.util import ngrams
-from nltk.tokenize import WordPunctTokenizer
+from nltk.tokenize import WordPunctTokenizer, word_tokenize
+from nltk.tokenize import TreebankWordTokenizer as twt
 import time
 import os
 from collections import Counter, OrderedDict
 from itertools import dropwhile, takewhile
 from functools import reduce
+from transformers import AutoTokenizer
 
 DATA_PATH = "E:/Studies/TAU/NLP/all"
 PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
@@ -20,8 +22,9 @@ VAL_DATA_PATH  = "E:/Studies/TAU/NLP/test"
 VAL_SET_SIZE = 500
 MAX_SPAN_LEN = 10
 MAX_TOKENS_TO_MASK = 30
-from transformers import AutoTokenizer
 tokenizer = AutoTokenizer.from_pretrained('t5-base')
+QUESTION_TOKEN = "<extra_id_0>"
+QUESTION_ID = 32099
 
 def ends_with_punctuation(string):
     return re.match(".*[?.:;!]$", string) is not None
@@ -89,7 +92,7 @@ def create_dataset(limit = np.inf):
 class Paragraph:
     def __init__(self, line, mask):
         self.line = line
-        self.tokenizer = WordPunctTokenizer()
+        self.tokenizer = twt()
         line = self.line.lower()
         self.spans = list(self.tokenizer.span_tokenize(line))
         self.word_list = [line[start:end] for (start, end) in self.spans]
@@ -100,28 +103,20 @@ class Paragraph:
 
     def find_all_recurring_spans(self):
         self.ngrams_pos = {}
-        timer = {i: 0 for i in range(7)}
         for n in range(MAX_SPAN_LEN, 0, -1):
-            st_time = time.time() # debug usage
 
             # interval 0:
             ngram_counter = Counter(nltk.ngrams(self.word_list, n))
-            time_0 = time.time()
-            timer[0] += time_0 - st_time
 
             # interval 1:
             ngrams_list = {}
             for k, c in takewhile(lambda v: v[1] > 1, ngram_counter.most_common()):
                 ngrams_list[k] = c
             if len(ngrams_list) == 0: continue
-            time_1 = time.time()
-            timer[1] += time_1 - time_0
 
             # interval 2:
             ngrams_freq = self.filter_irrelevant_spans(ngrams_list)
             if len(ngrams_freq) == 0: continue
-            time_2 = time.time()
-            timer[2] += time_2 - time_1
 
             ngram_pos_n = {}
             for ng in ngrams_freq:
@@ -129,21 +124,10 @@ class Paragraph:
                 if len(contained) == 0: ngram_pos_n[ng] = []
 
             if len(ngram_pos_n) == 0: continue
-
-            # interval 3:
-            time_3 = time.time()
-            timer[3] += time_3 - time_2
-
-            # interval 4:
-            time_4 = time.time()
-            timer[4] += time_4 - time_3
-
             # interval 5:
             self.ngrams_pos.update(ngram_pos_n)
-            time_5 = time.time()
-            timer[5] += time_5 - time_4
+
         self.find_ngrams_positions()
-        return timer
 
     def get_ngrams_positions(self):
         return self.ngrams_pos
@@ -194,36 +178,21 @@ class Paragraph:
                 if idx + ngram_wc[ngram_idx] <= num_words and word_list[idx: idx + ngram_wc[ngram_idx]] == list(ng):
                     self.ngrams_pos[ng].append((idx, (self.spans[idx][0], self.spans[idx + ngram_wc[ngram_idx] - 1][1])))
 
-    def remove_duplicate_ngrams(self, ng):
-        word_num = len(ng)
-        unique = []
-        last_idx = -1
-        for (word_id, (st, end)) in self.ngram_pos_n[ng]:
-            if not any(self.is_masked[word_id:(word_id + word_num)]) and (last_idx < 0 or word_id - last_idx >= word_num):
-                last_idx = word_id
-                unique.append((word_id, (st, end)))
 
-        if len(unique) >= 2:
-            for idx, pos in unique:
-                self.is_masked[idx:(idx + word_num)] = [True] * word_num
-        else:
-            unique = []
-        self.ngram_pos_n[ng] = unique
-
-    def sample_ngrams_to_mask(self, p = .67):
-        chosen_ngrams = []
+    def sample_ngrams_to_mask(self, p = 1.):
+        self.chosen_ngrams = set()
         ngrams_to_mask = []
         spans_to_ngrams = {}
         max_ngram = 0
         for ng, occur_lst in self.ngrams_pos.items():
-            max_ngram = max(max_ngram, len(ng))
             if np.random.rand() <= p:
+                max_ngram = max(max_ngram, len(ng))
                 label_idx = np.random.randint(len(occur_lst))
                 # TODO: Consider to change here to indices of ngrams instead of coping
                 X = occur_lst[:]
                 X.pop(label_idx)
                 y = occur_lst[label_idx]
-                chosen_ngrams.append(ng)
+                self.chosen_ngrams.add(ng)
                 ngrams_to_mask.append({ng : (X, y)})
                 for (w_id, pos) in  X:
                     spans_to_ngrams[pos] = ng
@@ -236,15 +205,11 @@ class Paragraph:
         limit = min(MAX_TOKENS_TO_MASK, int(self.tokens_count * 0.15))
         masked_line = ""
         last_idx = 0
-        dataset = {
-            'Masked' : []
-        }
         num_masked = len(self.spans_to_ngrams.items())
         for (s, e), ng in self.spans_to_ngrams.items():
             masked_line += self.line[last_idx:s] + self.mask
             last_idx = e
-            # 'index' is the char-wise location in "masked_line".
-            dataset['Masked'].append({'label' : ng, 'index' : len(masked_line) - 1})
+
         self.masked_line = masked_line + self.line[last_idx:]
 
     def _get_range_indices(self, l, pattern):
@@ -253,16 +218,61 @@ class Paragraph:
                 return (i, i + len(pattern))
         return -1
 
-    def get_paragraph_data(self):
-        out_dict = {'line' : "",
-                    'masked_line' : "",
-                    'labels' : [], # Tensor of dim Q*512 [of_ngram_#1, of_ngram_#2, ... ]
+    # for debug only
+    def handeler(self, tokenized_rep, str):
+        tokenized_ngram = tokenizer(str).input_ids[:-1]
+        pos = self._get_range_indices(tokenized_rep, tokenized_ngram)
+        if pos != -1: return pos
+
+    # for debug only
+    def _handle_edge_cases(self, tokenized_rep, ngram_str):
+        pos = self.handeler(tokenized_rep, "\"" + ngram_str + "\"", )
+        if pos != -1: return pos
+        pos = self.handeler(tokenized_rep, "\"" + ngram_str)
+        if pos != -1: return pos
+        pos = self.handeler(tokenized_rep, ngram_str + "\"")
+        if pos != -1: return pos
+        pos = self.handeler(tokenized_rep, "(" + ngram_str + ")")
+        if pos != -1: return pos
+        pos = self.handeler(tokenized_rep, "(" + ngram_str)
+        if pos != -1: return pos
+        pos = self.handeler(tokenized_rep, ngram_str + ")")
+        return pos
+
+    def get_splinter_data(self):
+        out_dict = {'line' : self.line,
+                    'masked_line' : self.masked_line,
+                    'labels' : {}, # Tensor of dim Q*512 [of_ngram_#1, of_ngram_#2, ... ]
                     'mask2label' :[]} # [ng1, ng2, ng1, ng1]
 
-        tokenized_rep = tokenizer(self.masked_line)
+        tokenized_rep = tokenizer(self.masked_line.lower()).input_ids
+        debug_counter = 0
+
+        en_time = 0
         for ngram in self.ngrams_pos:
+            if ngram not in self.chosen_ngrams:
+                continue
+            debug_counter += len(self.ngrams_pos[ngram])
             ngram_str = ' '.join(ngram)
-            tokenized_ngram = tokenizer(ngram_str)
-            st, en = self._get_range_indices(tokenized_rep, tokenized_ngram)
-            out_dict['labels'][ngram] = (st, en)
+            st_time = time.time()
+            tokenized_ngram = tokenizer(ngram_str).input_ids[:-1]
+            pos = self._get_range_indices(tokenized_rep, tokenized_ngram)
+            en_time += time.time() - st_time
+            if pos == -1:
+                return None, en_time
+                pos = self._handle_edge_cases(tokenized_rep, ngram_str)
+                if pos == -1:
+                    return None, en_time
+            out_dict['labels'][ngram] = pos
             # need to save questions that are relevant to this label
+        out_dict['mask2label'] = list(self.spans_to_ngrams.values())
+
+        # #for debug
+        # assert(debug_counter - len(out_dict['labels'].keys()) == len(out_dict['mask2label']))
+
+        return out_dict, en_time
+
+
+
+
+

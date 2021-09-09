@@ -9,6 +9,9 @@ PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
 # PROCESSED_DATA_PATH = "../data/processed"
 
 PROCESSED_DATA_SIZE = 17610994
+QUESTION_TOKEN = "<extra_id_0>"
+QUESTION_ID = 32099
+
 
 class SplinterCollate:
     def __init__(self, tokenizer, device='cuda'):
@@ -35,7 +38,7 @@ class SplinterCollate:
         return arg_dict
 
 class SplinterDataset(Dataset):
-    def __init__(self, num_runs = np.inf, mask = "[QUESTION]"):
+    def __init__(self, num_runs = np.inf, mask = QUESTION_TOKEN):
         super(SplinterDataset, self).__init__()
         self.num_runs = num_runs
         self.mask = mask
@@ -49,22 +52,24 @@ class SplinterDataset(Dataset):
     def _create_dataset(self):
         with open(PROCESSED_DATA_PATH, 'r', errors='ignore') as reader:
             count = 0
-            # timer_all = {i: 0 for i in range(7)} # debug usage only
-            # max_histogram = [0] * 11  # debug usage only
             st_time = time.time()
             file_idx = 0
+            prob_count = 0
+            f_timer = 0.
             while count < self.num_runs:
                 line = reader.readline()
                 if line:
                     line_instance = Paragraph(line, self.mask)
-                    timer = line_instance.find_all_recurring_spans()
-                    # for i in range(7):
-                    #     timer_all[i] += timer[i]
-                    # max_ngram = line_instance.sample_ngrams_to_mask()
-                    # max_histogram[max_ngram] += 1
-                    line_instance.sample_ngrams_to_mask()
+                    line_instance.find_all_recurring_spans()
+                    max_ngram = line_instance.sample_ngrams_to_mask()
+                    if max_ngram == 0:
+                        continue
                     line_instance.mask_recurring_spans()
-                    # paragraph_entry = line_instance.get_splinter_data()
+                    paragraph_entry, rel_timer = line_instance.get_splinter_data()
+                    f_timer += rel_timer
+                    if paragraph_entry == None:
+                        prob_count += 1
+                        continue
                     self.all_line_ob.append(line_instance)
                     # TODO: Maybe here it's a good place to add (stochasticly) to train/validation
                     count += 1
@@ -79,6 +84,7 @@ class SplinterDataset(Dataset):
                                 pickle.dump(self.all_line_ob, out_f, pickle.HIGHEST_PROTOCOL)
                 else:
                     break
+            print(prob_count)
 
     def select_ngrams(self):
         pass
@@ -87,4 +93,4 @@ class SplinterDataset(Dataset):
         pass
 
 if __name__ == '__main__':
-    ds = SplinterDataset()
+    ds = SplinterDataset(1000)
