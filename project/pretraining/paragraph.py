@@ -11,6 +11,7 @@ from collections import Counter, OrderedDict
 from itertools import dropwhile, takewhile
 from functools import reduce
 from transformers import AutoTokenizer
+from splinter_tokenizer import SplinterTokenizer
 
 DATA_PATH = "E:/Studies/TAU/NLP/all"
 PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
@@ -22,7 +23,7 @@ VAL_DATA_PATH  = "E:/Studies/TAU/NLP/test"
 VAL_SET_SIZE = 500
 MAX_SPAN_LEN = 10
 MAX_TOKENS_TO_MASK = 30
-tokenizer = AutoTokenizer.from_pretrained('t5-base')
+tokenizer = SplinterTokenizer()
 QUESTION_TOKEN = "<extra_id_0>"
 QUESTION_ID = 32099
 
@@ -92,7 +93,7 @@ def create_dataset(limit = np.inf):
 class Paragraph:
     def __init__(self, line, mask):
         self.line = line
-        self.tokenizer = twt()
+        self.tokenizer = WordPunctTokenizer()
         line = self.line.lower()
         self.spans = list(self.tokenizer.span_tokenize(line))
         self.word_list = [line[start:end] for (start, end) in self.spans]
@@ -127,7 +128,9 @@ class Paragraph:
             # interval 5:
             self.ngrams_pos.update(ngram_pos_n)
 
+        if len(self.ngrams_pos) == 0: return 0
         self.find_ngrams_positions()
+        return len(self.ngrams_pos)
 
     def get_ngrams_positions(self):
         return self.ngrams_pos
@@ -255,7 +258,7 @@ class Paragraph:
             debug_counter += len(self.ngrams_pos[ngram])
             ngram_str = ' '.join(ngram)
             st_time = time.time()
-            tokenized_ngram = tokenizer(ngram_str).input_ids[:-1]
+            tokenized_ngram = tokenizer(ngram_str, padding=False).input_ids[:-1]
             pos = self._get_range_indices(tokenized_rep, tokenized_ngram)
             en_time += time.time() - st_time
             if pos == -1:

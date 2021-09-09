@@ -56,14 +56,15 @@ class SplinterDataset(Dataset):
             file_idx = 0
             prob_count = 0
             f_timer = 0.
-            while count < self.num_runs:
+            while count <= self.num_runs:
+                count += 1
                 line = reader.readline()
                 if line:
                     line_instance = Paragraph(line, self.mask)
-                    line_instance.find_all_recurring_spans()
+                    num_rec_spans = line_instance.find_all_recurring_spans()
+                    if num_rec_spans == 0: continue
                     max_ngram = line_instance.sample_ngrams_to_mask()
-                    if max_ngram == 0:
-                        continue
+                    if max_ngram == 0: continue
                     line_instance.mask_recurring_spans()
                     paragraph_entry, rel_timer = line_instance.get_splinter_data()
                     f_timer += rel_timer
@@ -72,7 +73,7 @@ class SplinterDataset(Dataset):
                         continue
                     self.all_line_ob.append(line_instance)
                     # TODO: Maybe here it's a good place to add (stochasticly) to train/validation
-                    count += 1
+
                     if count % 50000 == 0:
                         ovrl_time = time.time() - st_time
                         time_left =  (ovrl_time/count) * (PROCESSED_DATA_SIZE - count)
