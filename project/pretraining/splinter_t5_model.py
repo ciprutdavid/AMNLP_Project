@@ -15,20 +15,14 @@ class SplinterT5Model(torch.nn.Module):
         self.E = nn.Parameter(torch.randn(size=(DIM, DIM)))
 
     def forward(self, input_ids, attention_mask):
-        question_indices = (input_ids == MASK_ID).long().view(-1)
-        relevant_attention_mask = attention_mask[question_indices, :]
-        relevant_attention_mask[relevant_attention_mask == 0] = float('-inf')
+        question_indices = (input_ids == MASK_ID).long().view(-1)  # dim = NUM_OF_BATCH*SEQ_LEN
+        relevant_attention_mask = attention_mask[question_indices, :]  # dim = BATCH_SIZE x SEQ_LEN
+        relevant_attention_mask[relevant_attention_mask == 0] = float('-inf')  # dim BATCH_SIZE x SEQ_LEN
 
-        X_T = self.t5_encoder(input_ids)
-        X = torch.transpose(X_T, 2, 1)
+        X_T = self.t5_encoder(input_ids)  # dim = NUM_OF_BATCH. x BATCH_SIZE x SEQ_LEN
+        X = torch.transpose(X_T, 2, 1)  # dim = NUM_OF_BATCH x SEQ_LEN x BATCH_SIZE
 
         start_prob = F.softmax((X_T @ self.S @ X).view(-1, DIM)[question_indices, :] * relevant_attention_mask, -1)
         end_prob = F.softmax((X_T @ self.S @ X).view(-1, DIM)[question_indices, :] * relevant_attention_mask, -1)
 
         return start_prob, end_prob
-
-
-def splinter_t5_loss(start_prob, end_prob, start_ground_truth, end_ground_truth):
-    start_loss = F.binary_cross_entropy(start_prob, start_ground_truth)
-    end_loss = F.binary_cross_entropy(end_prob, end_ground_truth)
-    return start_loss + end_loss
