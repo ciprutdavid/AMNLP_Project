@@ -26,7 +26,7 @@ class SplinterTokenizer:
 
     def tokenize(self, text):
         split_tokens = []
-        for token in self.word_punc_tokenizer.tokenize(text):
+        for token in self.word_tokenizer.tokenize(text):
             for sub_token in self.t5_tokenizer.tokenize(token):
                 split_tokens.append(sub_token)
         return split_tokens
