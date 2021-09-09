@@ -11,14 +11,17 @@ from itertools import dropwhile, takewhile
 from functools import reduce
 
 DATA_PATH = "E:/Studies/TAU/NLP/all"
-
-STOPWORDS_LIST = stopwords.words('english') + ['-', '"', '(', ')', '[' ,']']
+PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
+# PROCESSED_DATA_PATH = "../data/processed"
 nltk.download('punkt')
+STOPWORDS_LIST = stopwords.words('english') + ['-', '"', '(', ')', '[' ,']']
 TRAIN_DATA_PATH = "E:/Studies/TAU/NLP/train"
 VAL_DATA_PATH  = "E:/Studies/TAU/NLP/test"
 VAL_SET_SIZE = 500
 MAX_SPAN_LEN = 10
 MAX_TOKENS_TO_MASK = 30
+from transformers import AutoTokenizer
+tokenizer = AutoTokenizer.from_pretrained('t5-base')
 
 def ends_with_punctuation(string):
     return re.match(".*[?.:;!]$", string) is not None
@@ -243,3 +246,23 @@ class Paragraph:
             # 'index' is the char-wise location in "masked_line".
             dataset['Masked'].append({'label' : ng, 'index' : len(masked_line) - 1})
         self.masked_line = masked_line + self.line[last_idx:]
+
+    def _get_range_indices(self, l, pattern):
+        for i in range(len(l) - len(pattern) + 1):
+            if l[i:i + len(pattern)] == pattern:
+                return (i, i + len(pattern))
+        return -1
+
+    def get_paragraph_data(self):
+        out_dict = {'line' : "",
+                    'masked_line' : "",
+                    'labels' : [], # Tensor of dim Q*512 [of_ngram_#1, of_ngram_#2, ... ]
+                    'mask2label' :[]} # [ng1, ng2, ng1, ng1]
+
+        tokenized_rep = tokenizer(self.masked_line)
+        for ngram in self.ngrams_pos:
+            ngram_str = ' '.join(ngram)
+            tokenized_ngram = tokenizer(ngram_str)
+            st, en = self._get_range_indices(tokenized_rep, tokenized_ngram)
+            out_dict['labels'][ngram] = (st, en)
+            # need to save questions that are relevant to this label
