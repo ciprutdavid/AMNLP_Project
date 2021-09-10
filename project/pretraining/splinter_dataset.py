@@ -54,12 +54,6 @@ class SplinterDataset(Dataset):
     def _create_dataset(self):
         with open(PROCESSED_DATA_PATH, 'r', errors='ignore') as reader:
             count = 0
-
-            # TODO : delete later
-            for i in range(10000000):
-                reader.readline()
-            #######################
-
             st_time = time.time()
             self.train_file_idx = 0
             self.validation_file_idx = 0
@@ -135,5 +129,5 @@ class SplinterDataset(Dataset):
 
 
 if __name__ == '__main__':
-    ds = SplinterDataset(PROCESSED_DATA_SIZE - 10000000)
+    ds = SplinterDataset(PROCESSED_DATA_SIZE)
 
