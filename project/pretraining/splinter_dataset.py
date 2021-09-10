@@ -134,5 +134,5 @@ class SplinterDataset(Dataset):
 
 
 if __name__ == '__main__':
-    ds = SplinterDataset(PROCESSED_DATA_SIZE)
+    ds = SplinterDataset(10000000)
 
