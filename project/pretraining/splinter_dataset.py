@@ -100,13 +100,13 @@ class SplinterDataset(Dataset):
             print(too_many_to_mask)
 
     def save_train_checkpoint(self):
-        with open('../data/splinter_Data/train/all_train_paragraphs_{}.pkl'.format(self.train_file_idx), 'wb+') as out_f:
+        with open('../data/splinter_data/train/all_train_paragraphs_{}.pkl'.format(self.train_file_idx), 'wb+') as out_f:
             pickle.dump(self.all_line_ob_train, out_f, pickle.HIGHEST_PROTOCOL)
         self.train_file_idx += 1
         self.all_line_ob_train = []
 
     def save_validation_checkpoint(self):
-        with open('../data/splinter_Data/validation/all_validation_paragraphs_{}.pkl'.format(self.validation_file_idx), 'wb+') as out_f:
+        with open('../data/splinter_data/validation/all_validation_paragraphs_{}.pkl'.format(self.validation_file_idx), 'wb+') as out_f:
             pickle.dump(self.all_line_ob_train, out_f, pickle.HIGHEST_PROTOCOL)
         with open('../data/new_val_indices/val_indices.pkl', 'wb+') as out_f:
             pickle.dump(self.all_line_ob_train, out_f, pickle.HIGHEST_PROTOCOL)
