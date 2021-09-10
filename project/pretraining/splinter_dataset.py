@@ -14,7 +14,9 @@ t5_tokenizer = AutoTokenizer.from_pretrained('t5-base')
 PROCESSED_DATA_SIZE = 17610994
 QUESTION_TOKEN = "<extra_id_0>"
 QUESTION_ID = 32099
-
+VALID_LINES_RATIO = 0.67
+VALIDATION_SIZE = 500
+P_VALIDATION = VALIDATION_SIZE / PROCESSED_DATA_SIZE * VALID_LINES_RATIO
 
 class SplinterCollate:
     def __init__(self, tokenizer, device='cuda'):
@@ -45,10 +47,13 @@ class SplinterDataset(Dataset):
         super(SplinterDataset, self).__init__()
         self.num_runs = num_runs
         self.mask = mask
-        self.all_line_ob = []
+        self.all_line_ob_train = []
+        self.all_line_ob_validation = []
         st_time = time.time()
         self.train = self._create_dataset()
         en_time = time.time()
+        self.show_progress_n = 1000
+        self.save_checkpoint_n = 10000
         print("%d Lines were processed in %.2f seconds" % (num_runs, (en_time - st_time)))
 
 
@@ -59,6 +64,7 @@ class SplinterDataset(Dataset):
             file_idx = 0
             prob_count = 0
             too_many_to_mask = 0
+            validation_indicies = []
             while count <= self.num_runs:
                 count += 1
                 line = reader.readline()
@@ -75,30 +81,30 @@ class SplinterDataset(Dataset):
                     if paragraph_entry == None:
                         prob_count += 1
                         continue
-                    self.all_line_ob.append(paragraph_entry)
-                    # TODO: Maybe here it's a good place to add (stochasticly) to train/validation
+                    if np.random.rand():
+                        self.all_line_ob_train.append(paragraph_entry)
+                    else:
+                        validation_indicies.append(count)
+                        self.all_line_ob_validation.append(paragraph_entry)
 
-                    if count % 1000 == 0:
-                        ovrl_time = time.time() - st_time
-                        time_left =  (ovrl_time/count) * (PROCESSED_DATA_SIZE - count)
-                        print("%d (%.2f%%) paragraphs were processed at %.2fs (%.2fs per line)" %
-                              (count, 100 * count/PROCESSED_DATA_SIZE, ovrl_time, ovrl_time/count))
-                        print("     Expected to finish in %.2f minutes" % (time_left / 60))
-                        if count % 1000 == 0:
-                            with open('all_paragraphs_{}.pkl'.format(file_idx), 'wb+') as out_f:
-                                pickle.dump(self.all_line_ob, out_f, pickle.HIGHEST_PROTOCOL)
+                    # TODO: Maybe here it's a good place to add (stochasticly) to train/validation
                 else:
                     break
-            ovrl_time = time.time() - st_time
-            time_left = (ovrl_time / count) * (PROCESSED_DATA_SIZE - count)
-            print("%d (%.2f%%) paragraphs were processed at %.2fs (%.2fs per line)" %
-                  (count, 100 * count / PROCESSED_DATA_SIZE, ovrl_time, ovrl_time / count))
-            print("     Expected to finish in %.2f minutes" % (time_left / 60))
+            self.save_checkpoint(0)
 
-            with open('all_paragraphs_{}.pkl'.format(file_idx), 'wb+') as out_f:
-                pickle.dump(self.all_line_ob, out_f, pickle.HIGHEST_PROTOCOL)
             print(prob_count)
             print(too_many_to_mask)
+
+    def save_checkpoint(self, file_idx):
+        with open('all_paragraphs_{}.pkl'.format(file_idx), 'wb+') as out_f:
+            pickle.dump(self.all_line_ob_train, out_f, pickle.HIGHEST_PROTOCOL)
+
+    def show_progress(self, count, st_time):
+        ovrl_time = time.time() - st_time
+        time_left = (ovrl_time / count) * (PROCESSED_DATA_SIZE - count)
+        print("%d (%.2f%%) paragraphs were processed at %.2fs (%.2fs per line)" %
+              (count, 100 * count / PROCESSED_DATA_SIZE, ovrl_time, ovrl_time / count))
+        print("     Expected to finish in %.2f minutes" % (time_left / 60))
 
     def select_ngrams(self):
         pass

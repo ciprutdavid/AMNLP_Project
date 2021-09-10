@@ -2,6 +2,8 @@ import re
 import numpy as np
 import nltk
 from nltk.corpus import stopwords
+import torch
+import torch.nn.functional as F
 from nltk.util import ngrams
 from nltk.tokenize import WordPunctTokenizer, word_tokenize
 from nltk.tokenize import TreebankWordTokenizer as twt
@@ -12,6 +14,7 @@ from itertools import dropwhile, takewhile
 from functools import reduce
 from transformers import AutoTokenizer
 from splinter_tokenizer import SplinterTokenizer
+
 
 DATA_PATH = "E:/Studies/TAU/NLP/all"
 PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
@@ -219,7 +222,7 @@ class Paragraph:
     def _get_range_indices(self, l, pattern):
         for i in range(len(l) - len(pattern) + 1):
             if l[i:i + len(pattern)] == pattern:
-                return (i, i + len(pattern))
+                return [i, i + len(pattern)]
         return -1
 
     # for debug only
@@ -243,10 +246,26 @@ class Paragraph:
         pos = self.handeler(tokenized_rep, ngram_str + ")")
         return pos
 
+    def _answer_chars_to_tokens(self, text, answer_spans, tokens):
+        # convert char indices of answers to token indices
+        tok_spans = []
+        for s, e in answer_spans:
+
+            answer_tokens = [
+                i for i, (s_tok, e_tok) in enumerate(tokens.offset_mapping)
+                if e_tok >= s and s_tok <= e
+            ]
+            if len(answer_tokens) == 0:
+                print('Warning!')
+                print('text:', text, 'answer_spans:', answer_spans)
+                raise Exception
+            tok_spans += [(answer_tokens[0], answer_tokens[-1])]
+
+
     def get_splinter_data(self, tokenizer):
         out_dict = {'masked_line' : self.masked_line,
-                    'labels' : {}, # Tensor of dim Q*512 [of_Q_#1, of_Q_#2, ... ]
-                    'mask2label' :[]} # [ng1, ng2, ng1, ng1]
+                    }
+
 
         tokenized_rep = tokenizer(self.masked_line.lower())
         tokenized_line = tokenized_rep.input_ids
@@ -254,22 +273,26 @@ class Paragraph:
             print("debug print")
             return None
         debug_counter = 0
-
+        valid_labels = {}
         for ngram in self.ngrams_pos:
             if ngram not in self.chosen_ngrams:
                 continue
             debug_counter += len(self.ngrams_pos[ngram])
             ngram_str = ' '.join(ngram)
-            tokenized_ngram = tokenizer(ngram_str, padding=False).input_ids[:-1]
+            tokenized_ngram = tokenizer(ngram_str).input_ids[:-1]
             pos = self._get_range_indices(tokenized_line, tokenized_ngram)
             if pos == -1:
                 return None
                 # pos = self._handle_edge_cases(tokenized_rep, ngram_str)
                 # if pos == -1:
                 #     return None, en_time
-            out_dict['labels'][ngram] = pos
+            valid_labels[ngram] = pos
             # need to save questions that are relevant to this label
-        out_dict['mask2label'] = list(self.spans_to_ngrams.values())
+        pos_vec = [valid_labels[ng] for ng in self.spans_to_ngrams.values()]
+        # st_vec, en_vec = list(zip(*pos_vec))
+        out_dict['labels'] = pos_vec
+
+
 
         # #for debug
         # assert(debug_counter - len(out_dict['labels'].keys()) == len(out_dict['mask2label']))
