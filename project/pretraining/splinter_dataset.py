@@ -71,9 +71,13 @@ class SplinterDataset(Dataset):
                 if line:
                     line_instance = Paragraph(line, self.mask)
                     num_rec_spans = line_instance.find_all_recurring_spans()
-                    if num_rec_spans == 0: continue
+                    if num_rec_spans == 0:
+                        prob_count += 1
+                        continue
                     max_ngram, num_to_mask = line_instance.sample_ngrams_to_mask()
-                    if max_ngram == 0 or num_to_mask > 35: continue
+                    if max_ngram == 0 or num_to_mask > 35:
+                        prob_count += 1
+                        continue
                     line_instance.mask_recurring_spans()
                     paragraph_entry = line_instance.get_splinter_data(tokenizer=t5_tokenizer)
                     if paragraph_entry == None:
