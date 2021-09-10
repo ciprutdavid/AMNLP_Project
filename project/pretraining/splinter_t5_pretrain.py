@@ -8,13 +8,13 @@ VAL_PATH = "../data/test"
 
 
 class SplinterT5Trainer(Trainer):
-    def compute_loss(self, model, inputs, return_outputs=False):
+    def compute_loss(self, model, inputs):
         labels = inputs.pop("labels")
-        start_prob, end_prob = model(**inputs)
-        start_loss = F.binary_cross_entropy(start_prob, labels['start_labels'])
-        end_loss = F.binary_cross_entropy(end_prob, labels['end_labels'])
+        start_scores, end_scores = model(**inputs)
+        start_loss = F.cross_entropy(start_scores, labels['start_labels'])
+        end_loss = F.cross_entropy(end_scores, labels['end_labels'])
         loss = start_loss + end_loss
-        return (loss, start_prob, end_prob) if return_outputs else loss
+        return loss
 
 
 train_data = baseline_data.load_data(TRAIN_PATH)
