@@ -8,7 +8,7 @@ from transformers import AutoTokenizer
 from splinter_tokenizer import SplinterTokenizer
 
 #PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
-PROCESSED_DATA_PATH = "../data/processed"
+PROCESSED_DATA_PATH = "/home/yandex/AMNLP2021/benzeharia/project/AMNLP_Project/project/data/processed"
 
 t5_tokenizer = AutoTokenizer.from_pretrained('t5-base', cache_dir='../data/t5_tokenizer_cache/')
 PROCESSED_DATA_SIZE = 17610994
@@ -54,6 +54,12 @@ class SplinterDataset(Dataset):
     def _create_dataset(self):
         with open(PROCESSED_DATA_PATH, 'r', errors='ignore') as reader:
             count = 0
+
+            # TODO : delete later
+            for i in range(10000000):
+                reader.readline()
+            #######################
+
             st_time = time.time()
             self.train_file_idx = 0
             self.validation_file_idx = 0
@@ -129,5 +135,5 @@ class SplinterDataset(Dataset):
 
 
 if __name__ == '__main__':
-    ds = SplinterDataset(10000000)
+    ds = SplinterDataset(PROCESSED_DATA_SIZE - 10000000)
 
