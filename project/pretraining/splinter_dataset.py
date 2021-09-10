@@ -54,6 +54,9 @@ class SplinterDataset(Dataset):
     def _create_dataset(self):
         with open(PROCESSED_DATA_PATH, 'r', errors='ignore') as reader:
             count = 0
+            for i in range(10000000):
+                reader.readline()
+                count += 1
             st_time = time.time()
             self.train_file_idx = 0
             self.validation_file_idx = 0
@@ -102,14 +105,16 @@ class SplinterDataset(Dataset):
     def save_train_checkpoint(self):
         with open('../data/splinter_data/train/all_train_paragraphs_{}.pkl'.format(self.train_file_idx), 'wb+') as out_f:
             pickle.dump(self.all_line_ob_train, out_f, pickle.HIGHEST_PROTOCOL)
+        with open('../data/new_train_indices/train_indices.pkl', 'wb+') as out_f:
+            pickle.dump(self.train_indices, out_f, pickle.HIGHEST_PROTOCOL)
         self.train_file_idx += 1
         self.all_line_ob_train = []
 
     def save_validation_checkpoint(self):
         with open('../data/splinter_data/validation/all_validation_paragraphs_{}.pkl'.format(self.validation_file_idx), 'wb+') as out_f:
-            pickle.dump(self.all_line_ob_train, out_f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(self.all_line_ob_validation, out_f, pickle.HIGHEST_PROTOCOL)
         with open('../data/new_val_indices/val_indices.pkl', 'wb+') as out_f:
-            pickle.dump(self.all_line_ob_train, out_f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(self.validation_indices, out_f, pickle.HIGHEST_PROTOCOL)
         self.validation_file_idx += 1
         self.all_line_ob_validation = []
 
