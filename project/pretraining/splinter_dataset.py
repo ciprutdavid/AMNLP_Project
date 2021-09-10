@@ -14,6 +14,7 @@ t5_tokenizer = AutoTokenizer.from_pretrained('t5-base')
 PROCESSED_DATA_SIZE = 17610994
 QUESTION_TOKEN = "<extra_id_0>"
 QUESTION_ID = 32099
+DIM = 512
 
 
 class SplinterCollate:
@@ -22,26 +23,20 @@ class SplinterCollate:
         self.device = device
 
     def __call__(self, batch):
-        X = []
-        y = []
-        # for b in batch:
-        #     #line_mask = self.get_masked_line(b)
-        #     X.append(line_mask)
-        #     y.append(line_mask.label)
-        tokenized_X = self.tokenizer.batch_encode_plus(X, padding='max_length', truncation=True, max_length=512,
-                                                       return_tensors='pt')
-        tokenized_y = self.tokenizer.batch_encode_plus(y, padding='max_length', truncation=True, max_length=512,
-                                                       return_tensors='pt')
+        input_dict = {'input_ids': torch.LongTensor([], size=(0, DIM)), 'attention_mask': torch.empty(size=(0, DIM)),
+                      'labels': {'start_labels': torch.empty(size=(0, DIM)), 'end_labels': torch.empty(size=(0, DIM))}}
+        for example_dict in batch:
+            tokenized_masked_line = self.tokenizer(example_dict['masked_line'], padding='max_length', truncation=True,
+                                                   max_length=512, return_tensors='pt')
+            input_dict['input_ids'] = torch.vstack((input_dict['input_ids'], tokenized_masked_line['input_ids']))
+            input_dict['attention_mask'] = torch.vstack((input_dict['attention_mask'], tokenized_masked_line['attention_mask']))
+            input_dict['labels']['start_labels'] = torch.vstack((input_dict['labels']['start_labels'], example_dict['start_labels']))
+            input_dict['labels']['end_labels'] = torch.vstack((input_dict['labels']['end_labels'], example_dict['end_labels']))
+        return input_dict
 
-        arg_dict = {
-            'input_ids': tokenized_X['input_ids'].to(self.device),
-            # 'decoder_input_ids': tokenized_y['input_ids'].to(self.device),
-            'labels':tokenized_y['input_ids'].to(self.device)
-        }
-        return arg_dict
 
 class SplinterDataset(Dataset):
-    def __init__(self, num_runs = np.inf, mask = QUESTION_TOKEN):
+    def __init__(self, num_runs=np.inf, mask=QUESTION_TOKEN):
         super(SplinterDataset, self).__init__()
         self.num_runs = num_runs
         self.mask = mask
@@ -50,7 +45,6 @@ class SplinterDataset(Dataset):
         self.train = self._create_dataset()
         en_time = time.time()
         print("%d Lines were processed in %.2f seconds" % (num_runs, (en_time - st_time)))
-
 
     def _create_dataset(self):
         with open(PROCESSED_DATA_PATH, 'r', errors='ignore') as reader:
@@ -80,9 +74,9 @@ class SplinterDataset(Dataset):
 
                     if count % 1000 == 0:
                         ovrl_time = time.time() - st_time
-                        time_left =  (ovrl_time/count) * (PROCESSED_DATA_SIZE - count)
+                        time_left = (ovrl_time / count) * (PROCESSED_DATA_SIZE - count)
                         print("%d (%.2f%%) paragraphs were processed at %.2fs (%.2fs per line)" %
-                              (count, 100 * count/PROCESSED_DATA_SIZE, ovrl_time, ovrl_time/count))
+                              (count, 100 * count / PROCESSED_DATA_SIZE, ovrl_time, ovrl_time / count))
                         print("     Expected to finish in %.2f minutes" % (time_left / 60))
                         if count % 1000 == 0:
                             with open('all_paragraphs_{}.pkl'.format(file_idx), 'wb+') as out_f:
@@ -105,6 +99,7 @@ class SplinterDataset(Dataset):
 
     def mask_spans_all(self):
         pass
+
 
 if __name__ == '__main__':
     ds = SplinterDataset(1000)
