@@ -201,14 +201,13 @@ class SplinterTokenizer:
         if type(text) == str:
             tokenized_array = self.tokenize(text)
             string = self.t5_tokenizer.convert_tokens_to_string(tokenized_array)
-            return self.t5_tokenizer(string, padding=padding, truncation=truncation, max_length=max_length,
-                                     return_tensors=return_tensors)
+            return self.t5_tokenizer(string, padding=padding, truncation=truncation, max_length=max_length)
         else:
             multiple_text = []
             for line in text:
                 multiple_text.append(self.t5_tokenizer.convert_tokens_to_string(self.tokenize(line)))
             return self.t5_tokenizer.batch_encode_plus(multiple_text, padding=padding, truncation=truncation,
-                                                       max_length=max_length, return_tensors=return_tensors)
+                                                       max_length=max_length)
 
     def tokenize(self, text):
         split_tokens = []
