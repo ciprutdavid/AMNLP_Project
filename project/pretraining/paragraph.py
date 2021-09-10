@@ -264,12 +264,9 @@ class Paragraph:
     def get_splinter_data(self, tokenizer):
         out_dict = {'masked_line' : self.masked_line,
                     }
-
-
         tokenized_rep = tokenizer(self.masked_line.lower())
         tokenized_line = tokenized_rep.input_ids
         if len(tokenized_line) > MAX_LENGTH:
-            print("debug print")
             return None
         debug_counter = 0
         valid_labels = {}
@@ -293,7 +290,6 @@ class Paragraph:
         #for debug
         if (debug_counter - len(valid_labels.keys()) != len(out_dict['labels'][0])):
             print(1)
-
         return out_dict
 
 
