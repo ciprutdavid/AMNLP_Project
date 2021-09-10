@@ -7,8 +7,8 @@ import pickle
 from transformers import AutoTokenizer
 from splinter_tokenizer import SplinterTokenizer
 
-PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
-# PROCESSED_DATA_PATH = "../data/processed"
+#PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
+PROCESSED_DATA_PATH = "../data/processed"
 
 t5_tokenizer = AutoTokenizer.from_pretrained('t5-base')
 PROCESSED_DATA_SIZE = 17610994
@@ -65,6 +65,7 @@ class SplinterDataset(Dataset):
             self.validation_file_idx = 0
             prob_count = 0
             too_many_to_mask = 0
+            self.train_indices = []
             self.validation_indices = []
             while count <= self.num_runs:
                 count += 1
@@ -85,6 +86,7 @@ class SplinterDataset(Dataset):
                         prob_count += 1
                         continue
                     if np.random.rand() > P_VALIDATION:
+                        self.train_indices.append(count - 1)
                         self.all_line_ob_train.append(paragraph_entry)
                     else:
                         self.validation_indices.append(count - 1)
