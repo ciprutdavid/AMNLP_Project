@@ -20,9 +20,10 @@ class SplinterT5Model(torch.nn.Module):
         relevant_attention_mask[relevant_attention_mask == 0] = float('-inf')  # dim BATCH_SIZE x SEQ_LEN
 
         X_T = self.t5_encoder(input_ids)  # dim = NUM_OF_BATCH. x BATCH_SIZE x SEQ_LEN
+        X_T = X_T * relevant_attention_mask.unsqeeeze(-1)
         X = torch.transpose(X_T, 2, 1)  # dim = NUM_OF_BATCH x SEQ_LEN x BATCH_SIZE
 
-        start_prob = F.softmax((X_T @ self.S @ X).view(-1, DIM)[question_indices, :] * relevant_attention_mask, -1)
-        end_prob = F.softmax((X_T @ self.S @ X).view(-1, DIM)[question_indices, :] * relevant_attention_mask, -1)
+        start_scores = (X_T @ self.S @ X).view(-1, DIM)[question_indices, :]
+        end_scores = (X_T @ self.S @ X).view(-1, DIM)[question_indices, :]
 
-        return start_prob, end_prob
+        return start_scores, end_scores

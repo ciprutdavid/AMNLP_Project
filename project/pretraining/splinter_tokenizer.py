@@ -216,8 +216,10 @@ class SplinterTokenizer:
                 split_tokens.append(sub_token)
         return split_tokens
 
-# if __name__ == "__main__":
-#     string = "Anarchism is usually placed on the far-left of the political spectrum, and much of its economics and legal philosophy reflect anti-authoritarian interpretations of communism, collectivism, syndicalism, mutualism, or participatory economics. As anarchism does not offer a fixed body of doctrine from a single particular worldview, many anarchist types and traditions exist and varieties of anarchy diverge widely. Anarchist schools of thought can differ fundamentally, supporting anything from extreme individualism to complete collectivism. Strains of anarchism have often been divided into the categories of social and individualist anarchism, or similar dual classifications. "
-#     tok = SplinterTokenizer()
-#
-#     print(tok.word_tokenizer.tokenize(string))
+if __name__ == "__main__":
+    string = "Anarchism is usually placed on the far-left of the political spectrum, and much of its economics and legal philosophy reflect anti-authoritarian interpretations of communism, collectivism, syndicalism, mutualism, or participatory economics. As anarchism does not offer a fixed body of doctrine from a single particular worldview, many anarchist types and traditions exist and varieties of anarchy diverge widely. Anarchist schools of thought can differ fundamentally, supporting anything from extreme individualism to complete collectivism. Strains of anarchism have often been divided into the categories of social and individualist anarchism, or similar dual classifications. "
+    tok = SplinterTokenizer()
+    s = time.time()
+    print(tok.word_tokenizer.tokenize(string))
+    e = time.time()
+    print(e-s)

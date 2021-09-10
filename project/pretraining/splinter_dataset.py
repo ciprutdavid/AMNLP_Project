@@ -18,32 +18,27 @@ VALID_LINES_RATIO = 0.67
 VALIDATION_SIZE = 500
 P_VALIDATION = VALIDATION_SIZE / PROCESSED_DATA_SIZE * VALID_LINES_RATIO
 
+
 class SplinterCollate:
     def __init__(self, tokenizer, device='cuda'):
         self.tokenizer = tokenizer
         self.device = device
 
     def __call__(self, batch):
-        X = []
-        y = []
-        # for b in batch:
-        #     #line_mask = self.get_masked_line(b)
-        #     X.append(line_mask)
-        #     y.append(line_mask.label)
-        tokenized_X = self.tokenizer.batch_encode_plus(X, padding='max_length', truncation=True, max_length=512,
-                                                       return_tensors='pt')
-        tokenized_y = self.tokenizer.batch_encode_plus(y, padding='max_length', truncation=True, max_length=512,
-                                                       return_tensors='pt')
+        input_dict = {'input_ids': torch.LongTensor([], size=(0, DIM)), 'attention_mask': torch.empty(size=(0, DIM)),
+                      'labels': {'start_labels': torch.empty(size=(0, DIM)), 'end_labels': torch.empty(size=(0, DIM))}}
+        for example_dict in batch:
+            tokenized_masked_line = self.tokenizer(example_dict['masked_line'], padding='max_length', truncation=True,
+                                                   max_length=512, return_tensors='pt')
+            input_dict['input_ids'] = torch.vstack((input_dict['input_ids'], tokenized_masked_line['input_ids']))
+            input_dict['attention_mask'] = torch.vstack((input_dict['attention_mask'], tokenized_masked_line['attention_mask']))
+            input_dict['labels']['start_labels'] = torch.vstack((input_dict['labels']['start_labels'], example_dict['start_labels']))
+            input_dict['labels']['end_labels'] = torch.vstack((input_dict['labels']['end_labels'], example_dict['end_labels']))
+        return input_dict
 
-        arg_dict = {
-            'input_ids': tokenized_X['input_ids'].to(self.device),
-            # 'decoder_input_ids': tokenized_y['input_ids'].to(self.device),
-            'labels':tokenized_y['input_ids'].to(self.device)
-        }
-        return arg_dict
 
 class SplinterDataset(Dataset):
-    def __init__(self, num_runs = np.inf, mask = QUESTION_TOKEN):
+    def __init__(self, num_runs=np.inf, mask=QUESTION_TOKEN):
         super(SplinterDataset, self).__init__()
         self.num_runs = num_runs
         self.mask = mask
@@ -55,7 +50,6 @@ class SplinterDataset(Dataset):
         self.show_progress_n = 1000
         self.save_checkpoint_n = 10000
         print("%d Lines were processed in %.2f seconds" % (num_runs, (en_time - st_time)))
-
 
     def _create_dataset(self):
         with open(PROCESSED_DATA_PATH, 'r', errors='ignore') as reader:
@@ -69,7 +63,7 @@ class SplinterDataset(Dataset):
             self.validation_indices = []
             while count <= self.num_runs:
                 count += 1
-                if count % 50000 == 0:
+                if count % 250000 == 0:
                     self.save_train_checkpoint()
                     self.save_validation_checkpoint()
                     self.show_progress(count, st_time)
@@ -93,9 +87,11 @@ class SplinterDataset(Dataset):
                         self.all_line_ob_validation.append(paragraph_entry)
 
                     # TODO: Maybe here it's a good place to add (stochasticly) to train/validation
+
                 else:
                     break
-
+            self.save_train_checkpoint()
+            self.save_validation_checkpoint()
             print(prob_count)
             print(too_many_to_mask)
 
@@ -127,5 +123,7 @@ class SplinterDataset(Dataset):
     def mask_spans_all(self):
         pass
 
+
 if __name__ == '__main__':
-    ds = SplinterDataset(200000)
+    ds = SplinterDataset(10000000)
+
