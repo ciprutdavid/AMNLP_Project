@@ -17,7 +17,7 @@ QUESTION_ID = 32099
 VALID_LINES_RATIO = 0.67
 VALIDATION_SIZE = 500
 P_VALIDATION = VALIDATION_SIZE / PROCESSED_DATA_SIZE * VALID_LINES_RATIO
-
+DIM = 512
 
 class SplinterCollate:
     def __init__(self, tokenizer, device='cuda'):
