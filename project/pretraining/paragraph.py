@@ -185,7 +185,6 @@ class Paragraph:
                 if idx + ngram_wc[ngram_idx] <= num_words and word_list[idx: idx + ngram_wc[ngram_idx]] == list(ng):
                     self.ngrams_pos[ng].append((idx, (self.spans[idx][0], self.spans[idx + ngram_wc[ngram_idx] - 1][1])))
 
-
     def sample_ngrams_to_mask(self, p = 1.):
         self.chosen_ngrams = set()
         ngrams_to_mask = []
@@ -290,12 +289,10 @@ class Paragraph:
             # need to save questions that are relevant to this label
         pos_vec = [valid_labels[ng] for ng in self.spans_to_ngrams.values()]
         # st_vec, en_vec = list(zip(*pos_vec))
-        out_dict['labels'] = pos_vec
-
-
-
-        # #for debug
-        # assert(debug_counter - len(out_dict['labels'].keys()) == len(out_dict['mask2label']))
+        out_dict['labels'] = list(zip(*pos_vec))
+        #for debug
+        if (debug_counter - len(valid_labels.keys()) != len(out_dict['labels'][0])):
+            print(1)
 
         return out_dict
 

@@ -61,43 +61,56 @@ class SplinterDataset(Dataset):
         with open(PROCESSED_DATA_PATH, 'r', errors='ignore') as reader:
             count = 0
             st_time = time.time()
-            file_idx = 0
+            self.train_file_idx = 0
+            self.validation_file_idx = 0
             prob_count = 0
             too_many_to_mask = 0
-            validation_indicies = []
+            self.validation_indices = []
             while count <= self.num_runs:
                 count += 1
+                if count % 50000 == 0:
+                    self.save_train_checkpoint()
+                    self.save_validation_checkpoint()
+                    self.show_progress(count, st_time)
                 line = reader.readline()
                 if line:
                     line_instance = Paragraph(line, self.mask)
                     num_rec_spans = line_instance.find_all_recurring_spans()
                     if num_rec_spans == 0: continue
                     max_ngram, num_to_mask = line_instance.sample_ngrams_to_mask()
-                    if num_to_mask > 35:
-                        continue
-                    if max_ngram == 0: continue
+                    if max_ngram == 0 or num_to_mask > 35: continue
                     line_instance.mask_recurring_spans()
                     paragraph_entry = line_instance.get_splinter_data(tokenizer=t5_tokenizer)
                     if paragraph_entry == None:
                         prob_count += 1
                         continue
-                    if np.random.rand():
+                    if np.random.rand() > P_VALIDATION:
                         self.all_line_ob_train.append(paragraph_entry)
                     else:
-                        validation_indicies.append(count)
+                        self.validation_indices.append(count - 1)
                         self.all_line_ob_validation.append(paragraph_entry)
 
                     # TODO: Maybe here it's a good place to add (stochasticly) to train/validation
                 else:
                     break
-            self.save_checkpoint(0)
 
             print(prob_count)
             print(too_many_to_mask)
 
-    def save_checkpoint(self, file_idx):
-        with open('all_paragraphs_{}.pkl'.format(file_idx), 'wb+') as out_f:
+    def save_train_checkpoint(self):
+        with open('../data/splinter_Data/train/all_train_paragraphs_{}.pkl'.format(self.train_file_idx), 'wb+') as out_f:
             pickle.dump(self.all_line_ob_train, out_f, pickle.HIGHEST_PROTOCOL)
+        self.train_file_idx += 1
+        self.all_line_ob_train = []
+
+    def save_validation_checkpoint(self):
+        with open('../data/splinter_Data/validation/all_validation_paragraphs_{}.pkl'.format(self.validation_file_idx), 'wb+') as out_f:
+            pickle.dump(self.all_line_ob_train, out_f, pickle.HIGHEST_PROTOCOL)
+        with open('../data/new_val_indices/val_indices.pkl', 'wb+') as out_f:
+            pickle.dump(self.all_line_ob_train, out_f, pickle.HIGHEST_PROTOCOL)
+        self.validation_file_idx += 1
+        self.all_line_ob_validation = []
+
 
     def show_progress(self, count, st_time):
         ovrl_time = time.time() - st_time
@@ -113,4 +126,4 @@ class SplinterDataset(Dataset):
         pass
 
 if __name__ == '__main__':
-    ds = SplinterDataset(1000)
+    ds = SplinterDataset(200000)
