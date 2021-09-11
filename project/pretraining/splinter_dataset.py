@@ -27,7 +27,7 @@ class SplinterCollate:
 
     def __call__(self, batch):
         masked_line_batch, start_batch, end_batch = list(zip(*batch))
-        masked_line_batch = self.tokenizer(masked_line_batch, padding='max_length', truncation=True, max_length=DIM,
+        masked_line_batch = self.tokenizer(list(masked_line_batch), padding='max_length', truncation=True, max_length=DIM,
                                                        return_tensors='pt')
         start_batch = F.one_hot(torch.tensor([element for bat in list(start_batch) for element in bat]), DIM)
         end_batch = F.one_hot(torch.tensor([element for bat in list(end_batch) for element in bat]), DIM)
