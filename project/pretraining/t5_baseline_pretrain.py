@@ -23,7 +23,7 @@ if __name__ == "__main__":
     val_file_idx = 0
     len_train = len(train_indices)
     len_val = len(val_indices)
-    with open(PROCESSED_PATH, 'r') as reader:
+    with open(PROCESSED_PATH, 'r',errors='ignore') as reader:
         for idx, line in enumerate(reader):
             if train_file_idx < len_train and idx == train_indices[train_file_idx]:
                 train_data.append(line)
