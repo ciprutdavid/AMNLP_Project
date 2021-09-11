@@ -1,7 +1,8 @@
 import time
 import numpy as np
 import torch
-# from paragraph import Paragraph
+import torch.nn.functional as F
+from paragraph import Paragraph
 from torch.utils.data import Dataset, DataLoader
 import pickle
 from transformers import AutoTokenizer
@@ -10,7 +11,7 @@ from splinter_tokenizer import SplinterTokenizer
 #PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
 PROCESSED_DATA_PATH = "/home/yandex/AMNLP2021/benzeharia/project/AMNLP_Project/project/data/processed"
 
-# t5_tokenizer = AutoTokenizer.from_pretrained('t5-base', cache_dir='../data/t5_tokenizer_cache/')
+
 PROCESSED_DATA_SIZE = 17610994
 QUESTION_TOKEN = "<extra_id_0>"
 QUESTION_ID = 32099
@@ -25,8 +26,23 @@ class SplinterCollate:
         self.device = device
 
     def __call__(self, batch):
-        input_dict = {'input_ids': torch.LongTensor([], size=(0, DIM)), 'attention_mask': torch.empty(size=(0, DIM)),
-                      'labels': {'start_labels': torch.empty(size=(0, DIM)), 'end_labels': torch.empty(size=(0, DIM))}}
+        # TODO: 1. Set formatting to correspond with splinter_model
+        #       2. Should we set device when initializing tensors?
+
+        masked_line_batch, start_batch, end_batch = list(*zip(batch))
+        masked_line_batch = self.tokenizer(masked_line_batch)
+        start_batch = F.one_hot(torch.tensor([element for bat in start_batch for element in bat]), DIM)
+        end_batch = F.one_hot(torch.tensor([element for bat in end_batch for element in bat]), DIM)
+
+        output = {
+            'tokenized_lines' : masked_line_batch,
+            'lables' : {'start_labels' : start_batch,
+                        'end_batch' : end_batch
+            }
+        }
+        return output
+
+
         for example_dict in batch:
             tokenized_masked_line = self.tokenizer(example_dict['masked_line'], padding='max_length', truncation=True,
                                                    max_length=512, return_tensors='pt')
@@ -36,6 +52,20 @@ class SplinterCollate:
             input_dict['labels']['end_labels'] = torch.vstack((input_dict['labels']['end_labels'], example_dict['end_labels']))
         return input_dict
 
+class SplinterDatasetWrapper(Dataset):
+    def __init__(self, data_type):
+        super(SplinterDatasetWrapper, self).__init__()
+        self.data = prepare_data_for_pretraining(data_type)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, item):
+        masked_line= self.data[item]['masked_line']
+        raw_st_labels, raw_en_labels= self.data[item]['labels']
+        st_labels = F.one_hot(torch.tensor(raw_st_labels), DIM)
+        en_labels = F.one_hot(torch.tensor(raw_en_labels), DIM)
+        return (masked_line, st_labels, en_labels)
 
 class SplinterDataset(Dataset):
     def __init__(self, num_runs=np.inf, mask=QUESTION_TOKEN, start_idx=0):
@@ -49,6 +79,7 @@ class SplinterDataset(Dataset):
         en_time = time.time()
         self.show_progress_n = 1000
         self.save_checkpoint_n = 10000
+        self.t5_tokenizer = AutoTokenizer.from_pretrained('t5-base', cache_dir='../data/t5_tokenizer_cache/')
         print("%d Lines were processed in %.2f seconds" % (num_runs, (en_time - st_time)))
 
     def _create_dataset(self, start_idx):
@@ -82,7 +113,7 @@ class SplinterDataset(Dataset):
                         prob_count += 1
                         continue
                     line_instance.mask_recurring_spans()
-                    paragraph_entry = line_instance.get_splinter_data(tokenizer=t5_tokenizer)
+                    paragraph_entry = line_instance.get_splinter_data(tokenizer= self.t5_tokenizer)
                     if paragraph_entry == None:
                         prob_count += 1
                         continue
