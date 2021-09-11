@@ -38,23 +38,23 @@ class SplinterCollate:
 
 
 class SplinterDataset(Dataset):
-    def __init__(self, num_runs=np.inf, mask=QUESTION_TOKEN):
+    def __init__(self, num_runs=np.inf, mask=QUESTION_TOKEN, start_idx=0):
         super(SplinterDataset, self).__init__()
         self.num_runs = num_runs
         self.mask = mask
         self.all_line_ob_train = []
         self.all_line_ob_validation = []
         st_time = time.time()
-        self.train = self._create_dataset()
+        self.train = self._create_dataset(start_idx=0)
         en_time = time.time()
         self.show_progress_n = 1000
         self.save_checkpoint_n = 10000
         print("%d Lines were processed in %.2f seconds" % (num_runs, (en_time - st_time)))
 
-    def _create_dataset(self):
+    def _create_dataset(self, start_idx):
         with open(PROCESSED_DATA_PATH, 'r', errors='ignore') as reader:
             count = 0
-            for i in range(10000000):
+            for i in range(start_idx):
                 reader.readline()
                 count += 1
             st_time = time.time()
@@ -121,9 +121,9 @@ class SplinterDataset(Dataset):
 
     def show_progress(self, count, st_time):
         ovrl_time = time.time() - st_time
-        time_left = (ovrl_time / count) * (PROCESSED_DATA_SIZE - count)
+        time_left = (ovrl_time / count) * (self.num_runs - count)
         print("%d (%.2f%%) paragraphs were processed at %.2fs (%.2fs per line)" %
-              (count, 100 * count / PROCESSED_DATA_SIZE, ovrl_time, ovrl_time / count))
+              (count, 100 * count / self.num_runs, ovrl_time, ovrl_time / count))
         print("     Expected to finish in %.2f minutes" % (time_left / 60))
 
     def select_ngrams(self):
@@ -134,5 +134,5 @@ class SplinterDataset(Dataset):
 
 
 if __name__ == '__main__':
-    ds = SplinterDataset(PROCESSED_DATA_SIZE)
+    ds = SplinterDataset(10000000)
 
