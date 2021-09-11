@@ -26,7 +26,6 @@ class SplinterCollate:
         self.device = device
 
     def __call__(self, batch):
-        print(batch)
         masked_line_batch, start_batch, end_batch = list(zip(*batch))
         masked_line_batch = self.tokenizer(masked_line_batch, padding='max_length', truncation=True, max_length=DIM,
                                                        return_tensors='pt')
