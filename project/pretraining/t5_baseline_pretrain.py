@@ -7,7 +7,6 @@ PROCESSED_PATH = "/home/yandex/AMNLP2021/benzeharia/project/AMNLP_Project/projec
 TRAIN_INDEX_PATH = "../data/all_train_indices.pkl"
 VAL_INDEX_PATH = "../data/all_val_indices.pkl"
 
-
 if __name__ == "__main__":
 
     print("LOADING INDICES")
@@ -20,12 +19,18 @@ if __name__ == "__main__":
     val_data = []
 
     print("PREPARING TRAIN/VAL DATA")
-    with open(PROCESSED_PATH,'r') as reader:
+    train_file_idx = 0
+    val_file_idx = 0
+    len_train = len(train_indices)
+    len_val = len(val_indices)
+    with open(PROCESSED_PATH, 'r') as reader:
         for idx, line in enumerate(reader):
-            if idx in train_indices:
+            if idx == train_indices[train_file_idx]:
                 train_data.append(line)
-            elif idx in val_indices:
+                train_file_idx += 1
+            elif idx == val_indices[val_file_idx]:
                 val_data.append(line)
+                val_file_idx += 1
             else:
                 continue
 
