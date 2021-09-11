@@ -11,9 +11,9 @@ VAL_INDEX_PATH = "../data/all_val_indices.pkl"
 if __name__ == "__main__":
 
     print("LOADING INDICES")
-    with open(TRAIN_INDEX_PATH, 'rb') as train_index:
+    with open(TRAIN_INDEX_PATH, 'rb+') as train_index:
         train_indices = pickle.load(train_index)
-    with open(VAL_INDEX_PATH, 'rb') as val_index:
+    with open(VAL_INDEX_PATH, 'rb+') as val_index:
         val_indices = pickle.load(val_index)
 
     train_data = []
