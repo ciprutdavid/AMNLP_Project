@@ -7,25 +7,30 @@ PROCESSED_PATH = "/home/yandex/AMNLP2021/benzeharia/project/AMNLP_Project/projec
 TRAIN_INDEX_PATH = "../data/all_train_indices.pkl"
 VAL_INDEX_PATH = "../data/all_val_indices.pkl"
 
-
 if __name__ == "__main__":
 
     print("LOADING INDICES")
-    with open(TRAIN_INDEX_PATH, 'rb') as train_index:
+    with open(TRAIN_INDEX_PATH, 'rb+') as train_index:
         train_indices = pickle.load(train_index)
-    with open(VAL_INDEX_PATH, 'rb') as val_index:
+    with open(VAL_INDEX_PATH, 'rb+') as val_index:
         val_indices = pickle.load(val_index)
 
     train_data = []
     val_data = []
 
     print("PREPARING TRAIN/VAL DATA")
-    with open(PROCESSED_PATH, 'r') as reader:
+    train_file_idx = 0
+    val_file_idx = 0
+    len_train = len(train_indices)
+    len_val = len(val_indices)
+    with open(PROCESSED_PATH, 'r',errors='ignore') as reader:
         for idx, line in enumerate(reader):
-            if idx in train_indices:
+            if train_file_idx < len_train and idx == train_indices[train_file_idx]:
                 train_data.append(line)
-            elif idx in val_indices:
+                train_file_idx += 1
+            elif val_file_idx < len_val and idx == val_indices[val_file_idx]:
                 val_data.append(line)
+                val_file_idx += 1
             else:
                 continue
 
