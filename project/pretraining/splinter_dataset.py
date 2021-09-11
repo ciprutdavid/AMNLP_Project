@@ -131,25 +131,27 @@ class SplinterDataset(Dataset):
     def mask_spans_all(self):
         pass
 
-def prepare_data_for_pretraining():
+def prepare_data_for_pretraining(data_type = 'train'):
     paths = {
               'train' : {'first' : lambda x : '../data/splinter_data/train/all_train_paragraphs_{}.pkl'.format(x),
                   'second': lambda x: '../data/splinter_data/train_2/train_outputs/new_all_train_paragraphs_{}.pkl'.format(x)},
               'validation' : {'first' : lambda x : '../data/splinter_data/validation/all_validation_paragraphs_{}.pkl'.format(x),
                   'second': lambda x: '../data/splinter_data/validation_2/validation_outputs/new_all_validation_paragraphs_{}.pkl'.format(x)}
     }
-    for data, part in [(a,b) for a in ['train', 'validation'] for b in ['first', 'second']]:
+    # for data, part in [(a,b) for a in ['train', 'validation'] for b in ['first', 'second']]:
+    output = []
+    for part in ['first', 'second']:
         count = 0
         while True:
             try:
-                p = paths[data][part](count)
+                p = paths[data_type][part](count)
                 with open(p, 'rb+') as f:
-                    print(p)
+                    output.extend(pickle.load(f))
                 count+=1
             except FileNotFoundError:
                 print(count)
                 break
-
+    return output
 
 if __name__ == '__main__':
     ds = SplinterDataset(10000000)
