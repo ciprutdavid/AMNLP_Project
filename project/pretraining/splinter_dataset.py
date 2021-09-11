@@ -1,7 +1,7 @@
 import time
 import numpy as np
 import torch
-from paragraph import Paragraph
+# from paragraph import Paragraph
 from torch.utils.data import Dataset, DataLoader
 import pickle
 from transformers import AutoTokenizer
@@ -10,7 +10,7 @@ from splinter_tokenizer import SplinterTokenizer
 #PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
 PROCESSED_DATA_PATH = "/home/yandex/AMNLP2021/benzeharia/project/AMNLP_Project/project/data/processed"
 
-t5_tokenizer = AutoTokenizer.from_pretrained('t5-base', cache_dir='../data/t5_tokenizer_cache/')
+# t5_tokenizer = AutoTokenizer.from_pretrained('t5-base', cache_dir='../data/t5_tokenizer_cache/')
 PROCESSED_DATA_SIZE = 17610994
 QUESTION_TOKEN = "<extra_id_0>"
 QUESTION_ID = 32099
@@ -45,7 +45,7 @@ class SplinterDataset(Dataset):
         self.all_line_ob_train = []
         self.all_line_ob_validation = []
         st_time = time.time()
-        self.train = self._create_dataset(start_idx=0)
+        self.train = self._create_dataset(start_idx=start_idx)
         en_time = time.time()
         self.show_progress_n = 1000
         self.save_checkpoint_n = 10000
@@ -118,7 +118,6 @@ class SplinterDataset(Dataset):
         self.validation_file_idx += 1
         self.all_line_ob_validation = []
 
-
     def show_progress(self, count, st_time):
         ovrl_time = time.time() - st_time
         time_left = (ovrl_time / count) * (self.num_runs - count)
@@ -131,6 +130,25 @@ class SplinterDataset(Dataset):
 
     def mask_spans_all(self):
         pass
+
+def prepare_data_for_pretraining():
+    paths = {
+              'train' : {'first' : lambda x : '../data/splinter_data/train/all_train_paragraphs_{}.pkl'.format(x),
+                  'second': lambda x: '../data/splinter_data/train_2/train_outputs/new_all_train_paragraphs_{}.pkl'.format(x)},
+              'validation' : {'first' : lambda x : '../data/splinter_data/validation/all_validation_paragraphs_{}.pkl'.format(x),
+                  'second': lambda x: '../data/splinter_data/validation_2/validation_outputs/new_all_validation_paragraphs_{}.pkl'.format(x)}
+    }
+    for data, part in [(a,b) for a in ['train', 'validation'] for b in ['first', 'second']]:
+        count = 0
+        while True:
+            try:
+                p = paths[data][part](count)
+                with open(p, 'rb+') as f:
+                    print(p)
+                count+=1
+            except FileNotFoundError:
+                print(count)
+                break
 
 
 if __name__ == '__main__':
