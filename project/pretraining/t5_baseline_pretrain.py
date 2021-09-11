@@ -6,8 +6,7 @@ import pickle
 PROCESSED_PATH = "/home/yandex/AMNLP2021/benzeharia/project/AMNLP_Project/project/data/processed"
 TRAIN_INDEX_PATH = "../data/all_train_indices.pkl"
 VAL_INDEX_PATH = "../data/all_val_indices.pkl"
-TRAIN_PATH = "../data/train"
-VAL_PATH = "../data/test"
+
 
 if __name__ == "__main__":
 
