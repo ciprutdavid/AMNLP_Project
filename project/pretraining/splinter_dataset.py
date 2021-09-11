@@ -1,7 +1,7 @@
 import time
 import numpy as np
 import torch
-from paragraph import Paragraph
+# from paragraph import Paragraph
 from torch.utils.data import Dataset, DataLoader
 import pickle
 from transformers import AutoTokenizer
@@ -10,7 +10,7 @@ from splinter_tokenizer import SplinterTokenizer
 #PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
 PROCESSED_DATA_PATH = "/home/yandex/AMNLP2021/benzeharia/project/AMNLP_Project/project/data/processed"
 
-t5_tokenizer = AutoTokenizer.from_pretrained('t5-base', cache_dir='../data/t5_tokenizer_cache/')
+# t5_tokenizer = AutoTokenizer.from_pretrained('t5-base', cache_dir='../data/t5_tokenizer_cache/')
 PROCESSED_DATA_SIZE = 17610994
 QUESTION_TOKEN = "<extra_id_0>"
 QUESTION_ID = 32099
