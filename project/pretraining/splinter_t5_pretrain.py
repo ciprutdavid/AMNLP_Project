@@ -1,10 +1,8 @@
 import torch.nn.functional as F
 import splinter_t5_model as model
 from transformers import Trainer, T5Config, AutoTokenizer, TrainingArguments, T5ForConditionalGeneration
-import t5_baseline_pretrain_dataset as baseline_data
+from splinter_dataset import SplinterDatasetWrapper, SplinterCollate
 
-TRAIN_PATH = "../data/train"
-VAL_PATH = "../data/test"
 
 
 class SplinterT5Trainer(Trainer):
@@ -16,10 +14,7 @@ class SplinterT5Trainer(Trainer):
         loss = start_loss + end_loss
         return loss
 
-
-train_data = baseline_data.load_data(TRAIN_PATH)
-val_data = baseline_data.load_data(VAL_PATH)
-tokenizer = AutoTokenizer.from_pretrained('t5-base')
+tokenizer = AutoTokenizer.from_pretrained('t5-base', cache_dir='../data/t5_tokenizer_cache/')
 splinter_model = model.SplinterT5Model()
 
 args = {
@@ -40,9 +35,9 @@ args = {
 trainer_config = {
     'model': splinter_model,
     'args': TrainingArguments(**args),
-    'data_collator': baseline_data.T5_Collate(tokenizer, 'cuda'),
-    'train_dataset': baseline_data.WikiDataset(train_data),
-    'eval_dataset': baseline_data.WikiDataset(val_data),
+    'data_collator': SplinterCollate(tokenizer, 'cuda'),
+    'train_dataset': SplinterDatasetWrapper('train'),
+    'eval_dataset': SplinterDatasetWrapper('validation'),
     'tokenizer': tokenizer
 }
 

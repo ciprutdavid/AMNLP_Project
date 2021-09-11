@@ -11,8 +11,8 @@ class SplinterT5Model(torch.nn.Module):
     def __init__(self):
         super(SplinterT5Model, self).__init__()
         self.t5_encoder = T5EncoderModel(T5Config())
-        self.S = nn.Parameter(torch.randn(size=(DIM, DIM)))
-        self.E = nn.Parameter(torch.randn(size=(DIM, DIM)))
+        self.S = nn.Parameter(torch.randn(size=(DIM, DIM)), requires_grad=True)
+        self.E = nn.Parameter(torch.randn(size=(DIM, DIM)), requires_grad=True)
 
     def forward(self, input_ids, attention_mask):
         question_indices = (input_ids == MASK_ID).long().view(-1)  # dim = NUM_OF_BATCH*SEQ_LEN

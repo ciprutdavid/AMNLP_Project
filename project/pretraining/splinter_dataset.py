@@ -26,31 +26,19 @@ class SplinterCollate:
         self.device = device
 
     def __call__(self, batch):
-        # TODO: 1. Set formatting to correspond with splinter_model
-        #       2. Should we set device when initializing tensors?
 
         masked_line_batch, start_batch, end_batch = list(*zip(batch))
-        masked_line_batch = self.tokenizer(masked_line_batch)
+        masked_line_batch = self.tokenizer(masked_line_batch, padding='max_length', truncation=True, max_length=DIM,
+                                                       return_tensors='pt')
         start_batch = F.one_hot(torch.tensor([element for bat in start_batch for element in bat]), DIM)
         end_batch = F.one_hot(torch.tensor([element for bat in end_batch for element in bat]), DIM)
 
-        output = {
-            'tokenized_lines' : masked_line_batch,
-            'lables' : {'start_labels' : start_batch,
-                        'end_batch' : end_batch
-            }
-        }
-        return output
+        # masked_line_batch['input_ids'] =  masked_line_batch['input_ids'].to(self.device)
+        # masked_line_batch['attention_mask'] = masked_line_batch['attention_mask'].to(self.device)
+        masked_line_batch['labels'] = {'start_labels' : start_batch.to(self.device),
+                                       'end_labels' : end_batch.to(self.device) }
 
-
-        for example_dict in batch:
-            tokenized_masked_line = self.tokenizer(example_dict['masked_line'], padding='max_length', truncation=True,
-                                                   max_length=512, return_tensors='pt')
-            input_dict['input_ids'] = torch.vstack((input_dict['input_ids'], tokenized_masked_line['input_ids']))
-            input_dict['attention_mask'] = torch.vstack((input_dict['attention_mask'], tokenized_masked_line['attention_mask']))
-            input_dict['labels']['start_labels'] = torch.vstack((input_dict['labels']['start_labels'], example_dict['start_labels']))
-            input_dict['labels']['end_labels'] = torch.vstack((input_dict['labels']['end_labels'], example_dict['end_labels']))
-        return input_dict
+        return masked_line_batch
 
 class SplinterDatasetWrapper(Dataset):
     def __init__(self, data_type):
