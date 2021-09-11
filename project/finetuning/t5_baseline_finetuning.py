@@ -19,12 +19,12 @@ if __name__ == "__main__":
         model = '' # TODO : Figure out how to load the pretrainer model
 
 
-        args = { # TODO : tune the arguments for finetuning
+        args = { # TODO : BEFORE FINETUNING CHOOSE SETTINGS
             'output_dir': f"t5_finetune_{seed}_{examples}/",
             'do_eval': True,
             'evaluation_strategy': "steps",
-            'max_steps': 20000,
-            'save_steps': 50,
+            'max_steps': 200,
+            'save_steps': 10,
             'save_total_limit': 10,
             'eval_steps': 32,
             'dataloader_pin_memory': False,

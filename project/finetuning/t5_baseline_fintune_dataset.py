@@ -1,7 +1,9 @@
+import torch.utils.data
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 import json
 import time
+import numpy as np
 
 DATA_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/splinter_data/squad"
 SEED = [42, 43, 44]
@@ -10,7 +12,7 @@ train_file_name = lambda seed, examples: f"squad-train-seed-{seed}-num-examples-
 DEV_FILE_NAME = "dev.jsonl"
 
 
-def create_squad_train(seed, examples, tokenizer):
+def create_squad_train(seed, examples, tokenizer=AutoTokenizer.from_pretrained('t5-base')):
     data = []
     labels = []
     if seed not in SEED:
@@ -27,13 +29,25 @@ def create_squad_train(seed, examples, tokenizer):
                 if len(tokenizer(item_dict['context'])['input_ids']) > 512: continue
                 data.append(item_dict['context'] + " " + item_dict['qas'][0]['question'] + " </s> " + "<extra_id_0>")
                 labels.append("<extra_id_0> " + item_dict['qas'][0]['answers'][0] + " </s>")
-    return data,labels
+    return data, labels
 
 
-def create_squad_val(train_data_size): # TODO : finish val data creation
+def create_squad_val(size=1000, tokenizer=AutoTokenizer.from_pretrained('t5-base')):  # TODO : finish val data creation
+    data = []
+    labels = []
+    curr_size = 0
     path = DATA_PATH + '/' + DEV_FILE_NAME
     with open(path, 'r') as file:
-        print()
+        for idx, item in enumerate(file):
+            if curr_size == size:
+                break
+            else:
+                item_dict = json.loads(item)
+                if idx == 0 or len(tokenizer(item_dict['context'])['input_ids']) > 512: continue
+                curr_size += 1
+                data.append(item_dict['context'] + " " + item_dict['qas'][0]['question'] + " </s> " + "<extra_id_0>")
+                labels.append("<extra_id_0> " + item_dict['qas'][0]['answers'][0] + " </s>")
+    return data, labels
 
 
 class SquaDataset(Dataset):
@@ -49,15 +63,19 @@ class SquaDataset(Dataset):
         return self.examples[item], self.labels[item]
 
 
-class SquaDataColate: # TODO : finish data colate
+class SquaDataColate:  # TODO : finish data colate
 
-    def __init__(self,tokenizer):
+    def __init__(self, tokenizer,device='cuda'):
         self.tokenizer = tokenizer
+        self.device = device
 
-    def __call__(self,batch):
-        print()
-
-
-
-if __name__ == "__main__":
-    print()
+    def __call__(self, batch):
+        X,y = map(list,zip(*batch))
+        tokenized_X = self.tokenizer.batch_encode_plus(X, padding='max_length', truncation=True, max_length=512,
+                                                       return_tensors='pt')
+        tokenized_y = self.tokenizer.batch_encode_plus(y, padding='max_length', truncation=True, max_length=512,
+                                                       return_tensors='pt')
+        arg_dict = {
+            'input_ids': tokenized_X['input_ids'].to(self.device),'labels': tokenized_y['input_ids'].to(self.device)
+        }
+        return arg_dict
