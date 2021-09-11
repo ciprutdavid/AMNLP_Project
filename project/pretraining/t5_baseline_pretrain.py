@@ -20,7 +20,7 @@ if __name__ == "__main__":
     val_data = []
 
     print("PREPARING TRAIN/VAL DATA")
-    with open(PROCESSED_PATH, 'rb+') as reader:
+    with open(PROCESSED_PATH,'r') as reader:
         for idx, line in enumerate(reader):
             if idx in train_indices:
                 train_data.append(line)
