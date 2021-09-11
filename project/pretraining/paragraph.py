@@ -2,24 +2,16 @@ import re
 import numpy as np
 import nltk
 from nltk.corpus import stopwords
-import torch
-import torch.nn.functional as F
-from nltk.util import ngrams
-from nltk.tokenize import WordPunctTokenizer, word_tokenize
-from nltk.tokenize import TreebankWordTokenizer as twt
-import time
+from nltk.tokenize import WordPunctTokenizer
 import os
 from collections import Counter, OrderedDict
 from itertools import dropwhile, takewhile
-from functools import reduce
-from transformers import AutoTokenizer
-from splinter_tokenizer import SplinterTokenizer
 
 
 DATA_PATH = "E:/Studies/TAU/NLP/all"
 PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
 # PROCESSED_DATA_PATH = "../data/processed"
-nltk.download('punkt')
+# nltk.download('punkt')
 STOPWORDS_LIST = stopwords.words('english') + ['-', '"', '(', ')', '[' ,']']
 TRAIN_DATA_PATH = "E:/Studies/TAU/NLP/train"
 VAL_DATA_PATH  = "E:/Studies/TAU/NLP/test"
