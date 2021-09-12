@@ -20,6 +20,9 @@ class SplinterT5Model(torch.nn.Module):
         relevant_attention_mask[relevant_attention_mask == 0] = -1 # dim BATCH_SIZE x SEQ_LEN
 
         X_T = self.t5_encoder(input_ids).last_hidden_state   # dim = NUM_OF_BATCH. x BATCH_SIZE x SEQ_LEN
+        print(X_T.shape)
+        print(relevant_attention_mask.shape)
+        print(relevant_attention_mask.unsqueeze(-1).shape)
         X_T = X_T * relevant_attention_mask.unsqueeze(-1)
         X = torch.transpose(X_T, 2, 1)  # dim = NUM_OF_BATCH x SEQ_LEN x BATCH_SIZE
 
