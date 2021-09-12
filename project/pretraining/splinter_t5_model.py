@@ -16,7 +16,7 @@ class SplinterT5Model(torch.nn.Module):
 
     def forward(self, input_ids, attention_mask):
         question_indices = (input_ids == MASK_ID).view(-1) # dim = NUM_OF_BATCH*SEQ_LEN
-        relevant_attention_mask = attention_mask  # dim = BATCH_SIZE x SEQ_LEN
+        relevant_attention_mask = attention_mask.to(torch.float)  # dim = BATCH_SIZE x SEQ_LEN
         relevant_attention_mask[relevant_attention_mask == 0] = float('-inf')  # dim BATCH_SIZE x SEQ_LEN
 
         X_T = self.t5_encoder(input_ids).last_hidden_state  # dim = NUM_OF_BATCH. x BATCH_SIZE x SEQ_LEN
