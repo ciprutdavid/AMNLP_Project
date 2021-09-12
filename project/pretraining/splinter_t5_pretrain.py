@@ -24,7 +24,7 @@ args = {
     'save_total_limit': 10,
     'eval_steps': 32,
     'dataloader_pin_memory': False,
-    'per_device_train_batch_size': 8,
+    'per_device_train_batch_size': 32,
     'gradient_accumulation_steps': 32,
     'warmup_ratio': 0.1,
     'logging_steps': 1
