@@ -9,8 +9,8 @@ class SplinterT5Trainer(Trainer):
     def compute_loss(self, model, inputs):
         labels = inputs.pop("labels")
         start_scores, end_scores = model(**inputs)
-        start_loss = F.cross_entropy(start_scores, labels['start_labels'])
-        end_loss = F.cross_entropy(end_scores, labels['end_labels'])
+        start_loss = F.nll_loss(start_scores, labels['start_labels'])
+        end_loss = F.nll_loss(end_scores, labels['end_labels'])
         loss = start_loss + end_loss
         return loss
 

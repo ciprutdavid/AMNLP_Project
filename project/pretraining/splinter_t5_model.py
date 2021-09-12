@@ -23,7 +23,7 @@ class SplinterT5Model(torch.nn.Module):
         X_T = X_T * torch.unsqueeze(relevant_attention_mask,-1)
         X = torch.transpose(X_T, 2, 1)  # dim = NUM_OF_BATCH x SEQ_LEN x BATCH_SIZE
 
-        start_prob = F.softmax(torch.nan_to_num((X_T @ self.S @ X).view(-1, DIM)[question_indices, :],nan=float('-inf')),-1)
-        end_prob = F.softmax(torch.nan_to_num((X_T @ self.S @ X).view(-1, DIM)[question_indices, :],nan=float('-inf')),-1)
+        start_prob = F.log_softmax(torch.nan_to_num((X_T @ self.S @ X).view(-1, DIM)[question_indices, :],nan=float('-inf')),-1)
+        end_prob = F.log_softmax(torch.nan_to_num((X_T @ self.S @ X).view(-1, DIM)[question_indices, :],nan=float('-inf')),-1)
 
         return start_prob, end_prob
