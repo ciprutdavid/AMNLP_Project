@@ -151,10 +151,10 @@ class SplinterDataset(Dataset):
 
 def prepare_data_for_pretraining(data_type = 'train'):
     paths = {
-              'train' : {'first' : lambda x : '/home/yandex/AMNLP2021/benzeharia/project/AMNLP_Project/project/data/splinter_data/train/all_train_paragraphs_{}.pkl'.format(x),
-                  'second': lambda x: '/home/yandex/AMNLP2021/benzeharia/project/AMNLP_Project/project/data/splinter_data/train_2/train_outputs/new_all_train_paragraphs_{}.pkl'.format(x)},
-              'validation' : {'first' : lambda x : '/home/yandex/AMNLP2021/benzeharia/project/AMNLP_Project/project/data/splinter_data/validation/all_validation_paragraphs_{}.pkl'.format(x),
-                  'second': lambda x: '/home/yandex/AMNLP2021/benzeharia/project/AMNLP_Project/project/data/splinter_data/validation_2/validation_outputs/new_all_validation_paragraphs_{}.pkl'.format(x)}
+              'train' : {'first' : lambda x : '../data/splinter_data/train/all_train_paragraphs_{}.pkl'.format(x),
+                  'second': lambda x: '../data/splinter_data/train_2/train_outputs/new_all_train_paragraphs_{}.pkl'.format(x)},
+              'validation' : {'first' : lambda x : '../data/splinter_data/validation/all_validation_paragraphs_{}.pkl'.format(x),
+                  'second': lambda x: '../data/splinter_data/validation_2/validation_outputs/new_all_validation_paragraphs_{}.pkl'.format(x)}
     }
     # for data, part in [(a,b) for a in ['train', 'validation'] for b in ['first', 'second']]:
     output = []
