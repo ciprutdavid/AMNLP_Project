@@ -6,16 +6,14 @@ from splinter_dataset import SplinterDatasetWrapper, SplinterCollate
 
 
 class SplinterT5Trainer(Trainer):
-    def compute_loss(self, model, inputs):
+    def compute_loss(self, model, inputs, return_outputs=False):
         labels = inputs.pop("labels")
-        start_scores, end_scores = model(**inputs)
-        start_loss = F.cross_entropy(start_scores, labels['start_labels'])
-        end_loss = F.cross_entropy(end_scores, labels['end_labels'])
-        loss = start_loss + end_loss
-        return loss
+        outputs = model(**inputs)
+        loss = F.cross_entropy(outputs, labels)
+        return (loss, outputs) if return_outputs else loss
 
-tokenizer = AutoTokenizer.from_pretrained('t5-base', cache_dir='../data/t5_tokenizer_cache/')
-splinter_model = model.SplinterT5Model()
+tokenizer = AutoTokenizer.from_pretrained('t5-base', cache_dir='../data/t5_splinter_pretrain_output_dir/t5_tokenizer_cache/')
+splinter_model = model.SplinterT5Model().to('cuda')
 
 args = {
     'output_dir': "t5_splinter_pretrain_output_dir/",

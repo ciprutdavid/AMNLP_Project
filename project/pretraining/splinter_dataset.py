@@ -26,16 +26,13 @@ class SplinterCollate:
         self.device = device
 
     def __call__(self, batch):
-        masked_line_batch, start_batch, end_batch = list(zip(*batch))
+        masked_line_batch, labels_batch = list(zip(*batch))
         masked_line_batch = self.tokenizer(list(masked_line_batch), padding='max_length', truncation=True, max_length=DIM,
                                                        return_tensors='pt')
-        start_batch = torch.cat(start_batch)
-        end_batch = torch.cat(end_batch)
 
-        # masked_line_batch['input_ids'] =  masked_line_batch['input_ids'].to(self.device)
-        # masked_line_batch['attention_mask'] = masked_line_batch['attention_mask'].to(self.device)
-        masked_line_batch['labels'] = {'start_labels' : start_batch.to(self.device),
-                                       'end_labels' : end_batch.to(self.device) }
+        masked_line_batch['input_ids'] =  masked_line_batch['input_ids'].to(self.device)
+        masked_line_batch['attention_mask'] = masked_line_batch['attention_mask'].to(self.device)
+        masked_line_batch['labels'] = torch.cat(labels_batch).to(self.device)
 
         return masked_line_batch
 
@@ -50,9 +47,10 @@ class SplinterDatasetWrapper(Dataset):
     def __getitem__(self, item):
         masked_line= self.data[item]['masked_line']
         raw_st_labels, raw_en_labels= self.data[item]['labels']
-        st_labels = F.one_hot(torch.tensor(raw_st_labels), DIM)
-        en_labels = F.one_hot(torch.tensor(raw_en_labels), DIM)
-        return (masked_line, st_labels, en_labels)
+        st_labels = torch.LongTensor(raw_st_labels)
+        en_labels = torch.LongTensor(raw_en_labels)
+        labels = torch.cat((st_labels,en_labels))
+        return (masked_line, labels)
 
 class SplinterDataset(Dataset):
     def __init__(self, num_runs=np.inf, mask=QUESTION_TOKEN, start_idx=0):
