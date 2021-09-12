@@ -15,10 +15,13 @@ class SplinterT5Model(torch.nn.Module):
         self.E = nn.Parameter(torch.randn(size=(DIM, DIM)), requires_grad=True)
 
     def forward(self, input_ids, attention_mask):
+        print((input_ids == MASK_ID).long().shape)
         question_indices = (input_ids == MASK_ID).long().view(-1)  # dim = NUM_OF_BATCH*SEQ_LEN
+        print(question_indices)
         relevant_attention_mask = attention_mask[question_indices, :]  # dim = BATCH_SIZE x SEQ_LEN
+        print(relevant_attention_mask.shape)
         relevant_attention_mask[relevant_attention_mask == 0] = -1 # dim BATCH_SIZE x SEQ_LEN
-
+        print(relevant_attention_mask.shape)
         X_T = self.t5_encoder(input_ids).last_hidden_state   # dim = NUM_OF_BATCH. x BATCH_SIZE x SEQ_LEN
         print(X_T.shape)
         print(relevant_attention_mask.shape)
