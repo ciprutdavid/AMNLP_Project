@@ -1,9 +1,8 @@
 import itertools
 from transformers import AutoTokenizer, Trainer, TrainingArguments, T5ForConditionalGeneration
 import t5_baseline_fintune_dataset as baseline_dataset
-
-MODEL_PATH = "/home/david/PycharmProjects/AMNLP_Project/project/pretraining/t5_baseline_pretrain_output_dir/checkpoint-3900"
-DATA_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/splinter_data/squad"
+MODEL_PATH = "../pretraining/t5_baseline_pretrain_output_dir/checkpoint-3900"
+DATA_PATH = "../../data/splinter_data/squad"
 SEED = [42, 43, 44]
 EXAMPLES = [16, 32, 64, 128, 256, 512, 1024]
 train_file_name = lambda seed, examples: f"squad-train-seed-{seed}-num-examples-{examples}.jsonl"
@@ -16,7 +15,7 @@ if __name__ == "__main__":
         tokenizer = AutoTokenizer.from_pretrained('t5-base')
         train_dataset = baseline_dataset.SquaDataset(*baseline_dataset.create_squad_train(seed,examples,tokenizer))
         val_datset = baseline_dataset.SquaDataset(*baseline_dataset.create_squad_val(examples))
-        model = T5ForConditionalGeneration.from_pretrained('')
+        model = T5ForConditionalGeneration.from_pretrained(MODEL_PATH)
 
 
         args = { # TODO : BEFORE FINETUNING CHOOSE SETTINGS
@@ -24,12 +23,12 @@ if __name__ == "__main__":
             'do_eval': True,
             'evaluation_strategy': "steps",
             'max_steps': 200,
-            'save_steps': 10,
+            'save_steps': 20,
             'save_total_limit': 10,
-            'eval_steps': 32,
+            'eval_steps': 10,
             'dataloader_pin_memory': False,
             'per_device_train_batch_size': 8,
-            'gradient_accumulation_steps': 32,
+            # 'gradient_accumulation_steps': 32,
             'warmup_ratio': 0.1,
             'logging_steps': 1
         }
