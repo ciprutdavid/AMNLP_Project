@@ -25,7 +25,7 @@ if __name__ == "__main__":
             'max_steps': 200,
             'save_steps': 20,
             'save_total_limit': 10,
-            'eval_steps': 10,
+            'eval_steps': 2,
             'dataloader_pin_memory': False,
             'per_device_train_batch_size': 8,
             # 'gradient_accumulation_steps': 32,
