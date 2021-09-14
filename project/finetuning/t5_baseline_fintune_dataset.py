@@ -5,7 +5,7 @@ import json
 import time
 import numpy as np
 
-DATA_PATH = "/home/david/PycharmProjects/AMNLP_Project/data/splinter_data/squad"
+DATA_PATH = "../../data/splinter_data/squad"
 SEED = [42, 43, 44]
 EXAMPLES = [16, 32, 64, 128, 256, 512, 1024]
 train_file_name = lambda seed, examples: f"squad-train-seed-{seed}-num-examples-{examples}.jsonl"
@@ -79,3 +79,21 @@ class SquaDataColate:  # TODO : finish data colate
             'input_ids': tokenized_X['input_ids'].to(self.device),'labels': tokenized_y['input_ids'].to(self.device)
         }
         return arg_dict
+
+
+if __name__ == "__main__":
+
+    from transformers import T5Config,T5ForConditionalGeneration,AutoTokenizer
+    tokenizer = AutoTokenizer.from_pretrained('t5-base')
+    model = T5ForConditionalGeneration(T5Config())
+
+    path = DATA_PATH + '/' + train_file_name(42, 16)
+    with open(path, 'r') as file:
+        for idx,item in enumerate(file):
+            if idx == 0 : continue
+            item_dict = json.loads(item)
+            passage = item_dict['context']
+            tokenized = tokenizer(passage,padding='max_length',return_tensors='pt')
+            model.eval(tokenized)
+            print()
+
