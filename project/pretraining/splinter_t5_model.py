@@ -6,7 +6,6 @@ from transformers import T5EncoderModel, T5Config
 MASK_ID = 32099  # mask id of <extra_id_0>
 DIM = 512  # seq_len
 
-
 class SplinterT5Model(torch.nn.Module):
     def __init__(self):
         super(SplinterT5Model, self).__init__()
@@ -26,3 +25,11 @@ class SplinterT5Model(torch.nn.Module):
         scores = torch.cat((start_scores,end_scores))
 
         return scores
+
+    def reinitialize_qas_weights(self):
+        self.S = nn.Parameter(torch.randn(size=(DIM, DIM)), requires_grad=True)
+        self.E = nn.Parameter(torch.randn(size=(DIM, DIM)), requires_grad=True)
+
+
+def from_pretrained(path,device='cuda'):
+    return torch.load(path,map_location=device)
