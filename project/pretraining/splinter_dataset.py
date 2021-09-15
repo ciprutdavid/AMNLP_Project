@@ -26,13 +26,14 @@ class SplinterCollate:
         self.device = device
 
     def __call__(self, batch):
-        masked_line_batch, labels_batch = list(zip(*batch))
+        masked_line_batch, st_labels, en_labels = list(zip(*batch))
         masked_line_batch = self.tokenizer(list(masked_line_batch), padding='max_length', truncation=True, max_length=DIM,
                                                        return_tensors='pt')
 
+        labels_batch = torch.cat((torch.cat(st_labels),torch.cat(en_labels)))
         masked_line_batch['input_ids'] =  masked_line_batch['input_ids'].to(self.device)
         masked_line_batch['attention_mask'] = masked_line_batch['attention_mask'].to(self.device)
-        masked_line_batch['labels'] = torch.cat(labels_batch).to(self.device)
+        masked_line_batch['labels'] = labels_batch.to(self.device)
 
         return masked_line_batch
 
@@ -49,8 +50,7 @@ class SplinterDatasetWrapper(Dataset):
         raw_st_labels, raw_en_labels= self.data[item]['labels']
         st_labels = torch.LongTensor(raw_st_labels)
         en_labels = torch.LongTensor(raw_en_labels)
-        labels = torch.cat((st_labels,en_labels))
-        return (masked_line, labels)
+        return (masked_line, st_labels, en_labels)
 
 class SplinterDataset(Dataset):
     def __init__(self, num_runs=np.inf, mask=QUESTION_TOKEN, start_idx=0):
@@ -168,7 +168,4 @@ def prepare_data_for_pretraining(data_type = 'train'):
                 print(count)
                 break
     return output
-
-if __name__ == '__main__':
-    ds = SplinterDataset(10000000)
 
