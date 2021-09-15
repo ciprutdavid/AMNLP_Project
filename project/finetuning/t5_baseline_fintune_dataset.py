@@ -27,7 +27,7 @@ def create_squad_train(seed, examples, tokenizer=AutoTokenizer.from_pretrained('
                 continue
             else:
                 if len(tokenizer(item_dict['context'])['input_ids']) > 512: continue
-                data.append(item_dict['context'] + " " + item_dict['qas'][0]['question'] + " </s> " + "<extra_id_0>")
+                data.append(item_dict['context'] + " </s> "  + item_dict['qas'][0]['question'] + " " + "<extra_id_0>")
                 labels.append("<extra_id_0> " + item_dict['qas'][0]['answers'][0] + " </s>")
     return data, labels
 
@@ -45,7 +45,7 @@ def create_squad_val(size=1000, tokenizer=AutoTokenizer.from_pretrained('t5-base
                 item_dict = json.loads(item)
                 if idx == 0 or len(tokenizer(item_dict['context'])['input_ids']) > 512: continue
                 curr_size += 1
-                data.append(item_dict['context'] + " " + item_dict['qas'][0]['question'] + " </s> " + "<extra_id_0>")
+                data.append(item_dict['context'] + " </s> " + item_dict['qas'][0]['question'] + " " + "<extra_id_0>")
                 labels.append("<extra_id_0> " + item_dict['qas'][0]['answers'][0] + " </s>")
     return data, labels
 
@@ -81,19 +81,17 @@ class SquaDataColate:  # TODO : finish data colate
         return arg_dict
 
 
-if __name__ == "__main__":
-
-    from transformers import T5Config,T5ForConditionalGeneration,AutoTokenizer
-    tokenizer = AutoTokenizer.from_pretrained('t5-base')
-    model = T5ForConditionalGeneration(T5Config())
-
-    path = DATA_PATH + '/' + train_file_name(42, 16)
-    with open(path, 'r') as file:
-        for idx,item in enumerate(file):
-            if idx == 0 : continue
-            item_dict = json.loads(item)
-            passage = item_dict['context']
-            tokenized = tokenizer(passage,padding='max_length',return_tensors='pt')
-            model.eval(tokenized)
-            print()
+# if __name__ == "__main__":
+#
+#     from transformers import T5Config,T5ForConditionalGeneration,AutoTokenizer
+#     tokenizer = AutoTokenizer.from_pretrained('t5-base')
+#     model_pretrain = T5ForConditionalGeneration.from_pretrained("/home/david/PycharmProjects/AMNLP_Project/project/pretraining/t5_baseline_pretrain_output_dir/checkpoint-3900")
+#     # model_finetune = T5ForConditionalGeneration.from_pretrained("/home/david/PycharmProjects/AMNLP_Project/project/finetuning/output_dir/t5_finetune_42_1024/checkpoint-10")
+#
+#     data,labels = create_squad_val(10)
+#     for idx, example in enumerate(data):
+#         print(f"The passage : {example}")
+#         print(f"The label : {labels[idx]}")
+#         print(f"Pretrained model output : {model_pretrain.generate(example)}")
+#         # print(f"Finetuned model output : {model_finetune.generate(example)}")
 

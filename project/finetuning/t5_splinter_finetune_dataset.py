@@ -6,10 +6,20 @@ import time
 import numpy as np
 
 DATA_PATH = "../../data/splinter_data/squad"
-SEED = [42, 43, 44]
+SEED = [42]
 EXAMPLES = [16, 32, 64, 128, 256, 512, 1024]
 train_file_name = lambda seed, examples: f"squad-train-seed-{seed}-num-examples-{examples}.jsonl"
 DEV_FILE_NAME = "dev.jsonl"
+
+def find_start_end_indices(context_ids,answer_ids):
+    context_ids = context_ids[:-1] # remove id 1 from the end which the tokenizer adds
+    answer_ids = answer_ids[:-1] # remove id 1 from the end which the tokenizer adds
+    for i in range(len(context_ids) - len(answer_ids) + 1):
+        if context_ids[i:i+len(answer_ids)] == answer_ids:
+            start_index = i
+            end_index = i + len(answer_ids) - 1
+            return start_index,end_index
+    return None
 
 
 def create_squad_train(seed, examples, tokenizer=AutoTokenizer.from_pretrained('t5-base')):
@@ -92,8 +102,6 @@ if __name__ == "__main__":
         for idx,item in enumerate(file):
             if idx == 0 : continue
             item_dict = json.loads(item)
-            passage = item_dict['context']
-            tokenized = tokenizer(passage,padding='max_length',return_tensors='pt')
-            model.eval(tokenized)
-            print()
-
+            qas = item_dict['qas'][0]
+            answer = qas['answers'][0]
+            tokenized_answer = tokenizer(answer).input_ids
