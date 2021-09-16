@@ -21,7 +21,7 @@ class SplinterT5Model(torch.nn.Module):
         X = torch.transpose(X_T, 2, 1)  # dim = NUM_OF_BATCH x SEQ_LEN x BATCH_SIZE
 
         start_scores = (X_T @ self.S @ X).view(-1, DIM)[question_indices, :]
-        end_scores = (X_T @ self.S @ X).view(-1, DIM)[question_indices, :]
+        end_scores = (X_T @ self.E @ X).view(-1, DIM)[question_indices, :]
         scores = torch.cat((start_scores,end_scores))
 
         return scores
