@@ -1,13 +1,13 @@
 import itertools
 from transformers import AutoTokenizer, Trainer, TrainingArguments, T5ForConditionalGeneration
-import t5_baseline_fintune_dataset as baseline_dataset
+import project.finetuning.t5_splinter_finetune_dataset as splinter_dataset
 import project.pretraining.splinter_t5_model as splinter_model
 import torch.nn.functional as F
 
-MODEL_PATH = "../../backup/t5_splinter_pretrain_output_dir/checkpoint-2800"
-DATA_PATH = "../../data/splinter_data/squad"
+MODEL_PATH = "project/pretraining/t5_splinter_pretrain_output_dir/checkpoint-2400/pytorch_model.bin"
+DATA_PATH = "data/splinter_data/squad"
 SEED = [42]
-EXAMPLES = [16, 32, 64, 128, 256, 512, 1024]
+EXAMPLES = [32, 128, 512]
 train_file_name = lambda seed, examples: f"squad-train-seed-{seed}-num-examples-{examples}.jsonl"
 DEV_FILE_NAME = "dev.jsonl"
 
@@ -25,13 +25,14 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained('t5-base')
 
     for seed, examples in settings:
-        train_dataset = baseline_dataset.SquaDataset(*baseline_dataset.create_squad_train(seed, examples, tokenizer))
-        val_datset = baseline_dataset.SquaDataset(*baseline_dataset.create_squad_val(1000, tokenizer))
-        model = splinter_model.from_pretrained(MODEL_PATH)
+        train_dataset = splinter_dataset.SquaDataset(*splinter_dataset.create_squad_train(seed, examples, tokenizer))
+        val_datset = splinter_dataset.SquaDataset(*splinter_dataset.create_squad_val(1000, tokenizer))
+        model = splinter_model.from_pretrained(MODEL_PATH,device='cuda')
+        model.reinitialize_qas_weights()
 
-        args = {  # TODO : BEFORE FINETUNING CHOOSE SETTINGS
+        args = {
             # output setting
-            'output_dir': f"output_dir/t5_finetune_{seed}_{examples}/",
+            'output_dir': f"project/finetuning/output_dir/splinter_finetune_{seed}_{examples}/",
 
             # save setting
             'save_strategy': "epoch",
@@ -61,7 +62,7 @@ if __name__ == "__main__":
         trainer_config = {
             'model': model,
             'args': TrainingArguments(**args),
-            'data_collator': baseline_dataset.SquaDataColate(tokenizer=tokenizer),
+            'data_collator': splinter_dataset.SquaDataColate(tokenizer=tokenizer),
             'train_dataset': train_dataset,
             'eval_dataset': val_datset,
         }

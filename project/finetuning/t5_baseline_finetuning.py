@@ -5,7 +5,7 @@ import t5_baseline_fintune_dataset as baseline_dataset
 MODEL_PATH = "../pretraining/t5_baseline_pretrain_output_dir/checkpoint-3900"
 DATA_PATH = "../../data/splinter_data/squad"
 SEED = [42]
-EXAMPLES = [16, 32, 64, 128, 256, 512, 1024]
+EXAMPLES = [32, 128, 512]
 train_file_name = lambda seed, examples: f"squad-train-seed-{seed}-num-examples-{examples}.jsonl"
 DEV_FILE_NAME = "dev.jsonl"
 

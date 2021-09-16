@@ -13,17 +13,15 @@ class SplinterT5Model(torch.nn.Module):
         self.S = nn.Parameter(torch.randn(size=(DIM, DIM)), requires_grad=True)
         self.E = nn.Parameter(torch.randn(size=(DIM, DIM)), requires_grad=True)
 
-    def forward(self, input_ids, attention_mask):
+    def forward(self, input_ids):
         question_indices = (input_ids == MASK_ID).view(-1)  # dim = NUM_OF_BATCH*SEQ_LEN
 
         X_T = self.t5_encoder(input_ids).last_hidden_state  # dim = NUM_OF_BATCH. x BATCH_SIZE x SEQ_LEN
-        X_T = X_T
         X = torch.transpose(X_T, 2, 1)  # dim = NUM_OF_BATCH x SEQ_LEN x BATCH_SIZE
 
         start_scores = (X_T @ self.S @ X).view(-1, DIM)[question_indices, :]
         end_scores = (X_T @ self.E @ X).view(-1, DIM)[question_indices, :]
         scores = torch.cat((start_scores,end_scores))
-
         return scores
 
     def reinitialize_qas_weights(self):
@@ -32,4 +30,7 @@ class SplinterT5Model(torch.nn.Module):
 
 
 def from_pretrained(path,device='cuda'):
-    return torch.load(path,map_location=device)
+    model = SplinterT5Model().to(device)
+    weight_dict = torch.load(path,map_location=device)
+    model.load_state_dict(weight_dict)
+    return model

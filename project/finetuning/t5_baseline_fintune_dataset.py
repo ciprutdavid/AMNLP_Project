@@ -80,18 +80,3 @@ class SquaDataColate:  # TODO : finish data colate
         }
         return arg_dict
 
-
-# if __name__ == "__main__":
-#
-#     from transformers import T5Config,T5ForConditionalGeneration,AutoTokenizer
-#     tokenizer = AutoTokenizer.from_pretrained('t5-base')
-#     model_pretrain = T5ForConditionalGeneration.from_pretrained("/home/david/PycharmProjects/AMNLP_Project/project/pretraining/t5_baseline_pretrain_output_dir/checkpoint-3900")
-#     # model_finetune = T5ForConditionalGeneration.from_pretrained("/home/david/PycharmProjects/AMNLP_Project/project/finetuning/output_dir/t5_finetune_42_1024/checkpoint-10")
-#
-#     data,labels = create_squad_val(10)
-#     for idx, example in enumerate(data):
-#         print(f"The passage : {example}")
-#         print(f"The label : {labels[idx]}")
-#         print(f"Pretrained model output : {model_pretrain.generate(example)}")
-#         # print(f"Finetuned model output : {model_finetune.generate(example)}")
-
