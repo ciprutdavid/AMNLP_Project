@@ -24,7 +24,8 @@ def find_start_end_indices(context_ids,answer_ids):
 
 def create_squad_train(seed, examples, tokenizer=AutoTokenizer.from_pretrained('t5-base')):
     data = []
-    labels = []
+    start_labels = []
+    end_labels = []
     if seed not in SEED:
         raise Exception("seed needs to be 42,43,44,45 or 46")
     if examples not in EXAMPLES:
@@ -38,13 +39,17 @@ def create_squad_train(seed, examples, tokenizer=AutoTokenizer.from_pretrained('
             else:
                 if len(tokenizer(item_dict['context'])['input_ids']) > 512: continue
                 data.append(item_dict['context'] + " </s> " + item_dict['qas'][0]['question'] + " " + "<extra_id_0>")
-                labels.append("<extra_id_0> " + item_dict['qas'][0]['answers'][0] + " </s>")
-    return data, labels
+                start, end = find_start_end_indices(tokenizer(item_dict['context'])['input_ids'],
+                                                    tokenizer(item_dict['qas'][0]['answers'][0])['input_ids'])
+                start_labels.append(start)
+                end_labels.append(end)
+    return data, start_labels, end_labels
 
 
 def create_squad_val(size=1000, tokenizer=AutoTokenizer.from_pretrained('t5-base')):  # TODO : finish val data creation
     data = []
-    labels = []
+    start_labels = []
+    end_labels = []
     curr_size = 0
     path = DATA_PATH + '/' + DEV_FILE_NAME
     with open(path, 'r') as file:
@@ -56,8 +61,11 @@ def create_squad_val(size=1000, tokenizer=AutoTokenizer.from_pretrained('t5-base
                 if idx == 0 or len(tokenizer(item_dict['context'])['input_ids']) > 512: continue
                 curr_size += 1
                 data.append(item_dict['context'] + " " + item_dict['qas'][0]['question'] + " </s> " + "<extra_id_0>")
-                labels.append("<extra_id_0> " + item_dict['qas'][0]['answers'][0] + " </s>")
-    return data, labels
+                start, end = find_start_end_indices(tokenizer(item_dict['context'])['input_ids'],
+                                                    tokenizer(item_dict['qas'][0]['answers'][0])['input_ids'])
+                start_labels.append(start)
+                end_labels.append(end)
+    return data, start_labels, end_labels
 
 
 class SquaDataset(Dataset):
@@ -80,28 +88,16 @@ class SquaDataColate:  # TODO : finish data colate
         self.device = device
 
     def __call__(self, batch):
-        X,y = map(list,zip(*batch))
-        tokenized_X = self.tokenizer.batch_encode_plus(X, padding='max_length', truncation=True, max_length=512,
+        examples,start_labels,end_labels = map(list,zip(*batch))
+        tokenized_X = self.tokenizer.batch_encode_plus(examples, padding='max_length', truncation=True, max_length=512,
                                                        return_tensors='pt')
-        tokenized_y = self.tokenizer.batch_encode_plus(y, padding='max_length', truncation=True, max_length=512,
-                                                       return_tensors='pt')
+        labels = torch.LongTensor(start_labels.append(end_labels))
         arg_dict = {
-            'input_ids': tokenized_X['input_ids'].to(self.device),'labels': tokenized_y['input_ids'].to(self.device)
+            'input_ids': tokenized_X['input_ids'].to(self.device),'labels': labels.to(self.device)
         }
         return arg_dict
 
 
 if __name__ == "__main__":
 
-    from transformers import T5Config,T5ForConditionalGeneration,AutoTokenizer
-    tokenizer = AutoTokenizer.from_pretrained('t5-base')
-    model = T5ForConditionalGeneration(T5Config())
-
-    path = DATA_PATH + '/' + train_file_name(42, 16)
-    with open(path, 'r') as file:
-        for idx,item in enumerate(file):
-            if idx == 0 : continue
-            item_dict = json.loads(item)
-            qas = item_dict['qas'][0]
-            answer = qas['answers'][0]
-            tokenized_answer = tokenizer(answer).input_ids
+    create_squad_train(42,1024)
