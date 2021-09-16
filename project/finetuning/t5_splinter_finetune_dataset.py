@@ -6,7 +6,7 @@ import time
 import numpy as np
 
 DATA_PATH = "../../data/splinter_data/squad"
-SEED = [42]
+SEED = [42,43,44,45,46]
 EXAMPLES = [16, 32, 64, 128, 256, 512, 1024]
 train_file_name = lambda seed, examples: f"squad-train-seed-{seed}-num-examples-{examples}.jsonl"
 DEV_FILE_NAME = "dev.jsonl"
@@ -38,11 +38,12 @@ def create_squad_train(seed, examples, tokenizer=AutoTokenizer.from_pretrained('
                 continue
             else:
                 if len(tokenizer(item_dict['context'])['input_ids']) > 512: continue
-                data.append(item_dict['context'] + " </s> " + item_dict['qas'][0]['question'] + " " + "<extra_id_0>")
-                start, end = find_start_end_indices(tokenizer(item_dict['context'])['input_ids'],
+                labels = find_start_end_indices(tokenizer(item_dict['context'])['input_ids'],
                                                     tokenizer(item_dict['qas'][0]['answers'][0])['input_ids'])
-                start_labels.append(start)
-                end_labels.append(end)
+                if labels is None: continue
+                start_labels.append(labels[0])
+                end_labels.append(labels[1])
+                data.append(item_dict['context'] + " </s> " + item_dict['qas'][0]['question'] + " " + "<extra_id_0>")
     return data, start_labels, end_labels
 
 
@@ -59,26 +60,28 @@ def create_squad_val(size=1000, tokenizer=AutoTokenizer.from_pretrained('t5-base
             else:
                 item_dict = json.loads(item)
                 if idx == 0 or len(tokenizer(item_dict['context'])['input_ids']) > 512: continue
-                curr_size += 1
-                data.append(item_dict['context'] + " " + item_dict['qas'][0]['question'] + " </s> " + "<extra_id_0>")
-                start, end = find_start_end_indices(tokenizer(item_dict['context'])['input_ids'],
+                labels = find_start_end_indices(tokenizer(item_dict['context'])['input_ids'],
                                                     tokenizer(item_dict['qas'][0]['answers'][0])['input_ids'])
-                start_labels.append(start)
-                end_labels.append(end)
+                if labels is None: continue
+                start_labels.append(labels[0])
+                end_labels.append(labels[1])
+                data.append(item_dict['context'] + " " + item_dict['qas'][0]['question'] + " </s> " + "<extra_id_0>")
+                curr_size += 1
     return data, start_labels, end_labels
 
 
 class SquaDataset(Dataset):
-    def __init__(self, examples, labels):
+    def __init__(self, examples, start_labels,end_labels):
         super(SquaDataset, self).__init__()
         self.examples = examples
-        self.labels = labels
+        self.start_labels = start_labels
+        self.end_labels = end_labels
 
     def __len__(self):
         return len(self.examples)
 
     def __getitem__(self, item):
-        return self.examples[item], self.labels[item]
+        return self.examples[item], self.start_labels[item], self.end_labels[item]
 
 
 class SquaDataColate:  # TODO : finish data colate
@@ -97,7 +100,3 @@ class SquaDataColate:  # TODO : finish data colate
         }
         return arg_dict
 
-
-if __name__ == "__main__":
-
-    create_squad_train(42,1024)

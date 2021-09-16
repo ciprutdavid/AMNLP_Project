@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 MODEL_PATH = "../../backup/t5_splinter_pretrain_output_dir/checkpoint-2800"
 DATA_PATH = "../../data/splinter_data/squad"
-SEED = [42, 43, 44]
+SEED = [42]
 EXAMPLES = [16, 32, 64, 128, 256, 512, 1024]
 train_file_name = lambda seed, examples: f"squad-train-seed-{seed}-num-examples-{examples}.jsonl"
 DEV_FILE_NAME = "dev.jsonl"
