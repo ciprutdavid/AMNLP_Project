@@ -28,7 +28,7 @@ class EvaluateModel:
                 return
             prepared_line = line['context'] +  " </s> " + line['qas'][0]['question'] + " " + "<extra_id_0>"
             tokenized = self.tokenizer(prepared_line).input_ids
-            tokenized = torch.tensor(tokenized).view(1, len(tokenized))
+            tokenized = torch.tensor(tokenized).view(1, len(tokenized)).to(device='cuda')
             pred = self.model(tokenized)
             return pred
 
