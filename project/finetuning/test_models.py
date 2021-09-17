@@ -41,7 +41,7 @@ class EvaluateModel:
             prepared_line = line['context'] +  " </s> " + line['qas'][0]['question'] + " " + "<extra_id_0>"
             tokenized = self.tokenizer(prepared_line, padding = 'max_length', truncation = True, max_length = DIM).input_ids
             tokenized_2d = torch.tensor(tokenized).view(1, len(tokenized)).to(device='cuda')
-            pred = torch.argmax(F.softmax(self.model(tokenized_2d), dim=1))
+            pred = torch.argmax(F.softmax(self.model(tokenized_2d), dim=1), dim=1)
             print(pred.shape)
             st, en = pred[0], pred[1]
             if st > en:
