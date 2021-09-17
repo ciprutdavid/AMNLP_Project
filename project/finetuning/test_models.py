@@ -27,22 +27,32 @@ class EvaluateModel:
         self.tokenizer = AutoTokenizer.from_pretrained('t5-base')
         self.data = self.natural_qa_data()
 
+    def compute_f1_of_all_dataset(self):
+        sum = 0.
+        valid_count = 0
+        for _ in range(12000):
+            res = self.interpretate()
+            if self.interpretate() != -1:
+                valid_count += 1
+                sum += res
+        return sum / valid_count, valid_count
+
+
     def interpretate(self):
         with torch.no_grad():
             line = next(self.data)
             if 'context' not in line:
                 print("Metadata entry of the dataset")
-                return
+                return -1
             y = self._find_start_end_indices(self.tokenizer(line['context'].lower()).input_ids,
                                             self.tokenizer(line['qas'][0]['answers'][0].lower()).input_ids)
             num_occ_of_answer = len(line['qas'][0]['detected_answers'][0]['char_spans'])
             if len(y) != num_occ_of_answer:
-                print(1111)
+                return -1
             prepared_line = line['context'] +  " </s> " + line['qas'][0]['question'] + " " + "<extra_id_0>"
             tokenized = self.tokenizer(prepared_line, padding = 'max_length', truncation = True, max_length = DIM).input_ids
             tokenized_2d = torch.tensor(tokenized).view(1, len(tokenized)).to(device='cuda')
             pred = torch.argmax(F.softmax(self.model(tokenized_2d), dim=1), dim=1)
-            print(pred.shape)
             st, en = pred[0], pred[1]
             if st > en:
                 en = st
