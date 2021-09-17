@@ -52,7 +52,11 @@ class EvaluateModel:
             if len(y) != num_occ_of_answer or len(tokenized) > DIM:
                 return -1
             tokenized_2d = torch.tensor(tokenized).view(1, len(tokenized)).to(device='cuda')
-            pred = torch.argmax(self.model(tokenized_2d), dim=1)
+            try:
+                pred = torch.argmax(self.model(tokenized_2d), dim=1)
+            except RuntimeError:
+                print(prepared_line)
+                return -1
             st, en = pred[0], pred[1]
             if st > en:
                 en = st
