@@ -23,7 +23,7 @@ class EvaluateModel:
     def interpretate(self):
         with torch.no_grad():
             line = next(self.data)
-            if 'conext' not in line:
+            if 'context' not in line:
                 print("Metadata entry of the dataset")
                 return
             prepare_line = line['context'] +  " </s> " + line['qas'][0]['question'] + " " + "<extra_id_0>"
