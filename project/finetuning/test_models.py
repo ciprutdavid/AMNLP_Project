@@ -53,12 +53,16 @@ class EvaluateModel:
                 return -1
             tokenized_2d = torch.tensor(tokenized).view(1, len(tokenized)).to(device='cuda')
             pred = torch.argmax(self.model(tokenized_2d), dim=1)
-            print(pred)
             st, en = pred[0], pred[1]
             if st > en:
                 en = st
             pred_text = self.tokenizer.decode(tokenized[st:en+1])
-            return compute_f1(pred_text, line['qas'][0]['answers'][0])
+            f1_score =  compute_f1(pred_text, line['qas'][0]['answers'][0])
+            if f1_score > 0:
+                print(pred_text)
+                print(line['qas'][0]['answers'][0])
+                print("")
+            return f1_score
 
             # print(prepared_line)
             # print("answer: {}".format(line['qas'][0]['answers'][0]))
