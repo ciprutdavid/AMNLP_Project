@@ -40,10 +40,17 @@ class EvaluateModel:
 
     def interpretate(self):
         with torch.no_grad():
-            line = next(self.data)
+            try:
+                line = next(self.data)
+            except StopIteration:
+                return -1
             if 'context' not in line:
                 print("Metadata entry of the dataset")
                 return -1
+            if not(line['context'].startswith("<P>") or line['context'].startswith("<p>")):
+                print("bad start")
+                return -1
+
             y = self._find_start_end_indices(self.tokenizer(line['context'].lower()).input_ids,
                                             self.tokenizer(line['qas'][0]['answers'][0].lower()).input_ids)
             num_occ_of_answer = len(line['qas'][0]['detected_answers'][0]['char_spans'])
