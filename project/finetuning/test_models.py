@@ -37,12 +37,17 @@ class EvaluateModel:
                                             self.tokenizer(line['qas'][0]['answers'][0].lower()).input_ids)
             num_occ_of_answer = len(line['qas'][0]['detected_answers'][0]['char_spans'])
             if len(y) != num_occ_of_answer:
-                return 1
+                print(1111)
             prepared_line = line['context'] +  " </s> " + line['qas'][0]['question'] + " " + "<extra_id_0>"
             tokenized = self.tokenizer(prepared_line, padding = 'max_length', truncation = True, max_length = DIM).input_ids
             tokenized = torch.tensor(tokenized).view(1, len(tokenized)).to(device='cuda')
-            pred = self.model(tokenized)
-            return 0
+            pred = F.softmax(self.model(tokenized), dim=1)
+
+            print("top 5: {}".format(torch.topk(pred, 5)))
+            print("labels: {}".format(y))
+            print("")
+
+
             # return pred
 
     def natural_qa_data(self):
