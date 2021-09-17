@@ -14,7 +14,7 @@ class EvaluateModel:
     def __init__(self, model = None, path = None):
         if model == None:
             model = splinter_model
-            path = '../model_checkpoints/t5_splinter_finetuned/splinter_finetune_42_512/checkpoint-10/'
+            path = '../model_checkpoints/t5_splinter_finetuned/splinter_finetune_42_512/checkpoint-10/pytorch_model.bin'
         self.model = model.from_pretrained(path)
         self.model.eval()
         self.tokenizer = AutoTokenizer.from_pretrained('t5-base')
