@@ -32,7 +32,7 @@ class EvaluateModel:
         valid_count = 0
         for _ in range(12000):
             res = self.interpretate()
-            if self.interpretate() != -1:
+            if res != -1:
                 valid_count += 1
                 sum += res
         return sum / valid_count, valid_count
