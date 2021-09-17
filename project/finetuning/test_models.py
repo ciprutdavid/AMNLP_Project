@@ -1,6 +1,6 @@
 import torch
 from transformers import AutoTokenizer, Trainer, TrainingArguments, T5ForConditionalGeneration
-import ..pretraining.splinter_t5_model as splinter_model
+import ...pretraining.splinter_t5_model as splinter_model
 import json
 
 T5_CHECKPOINT_PATH = ''
