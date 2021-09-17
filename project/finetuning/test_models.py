@@ -40,15 +40,19 @@ class EvaluateModel:
                 print(1111)
             prepared_line = line['context'] +  " </s> " + line['qas'][0]['question'] + " " + "<extra_id_0>"
             tokenized = self.tokenizer(prepared_line, padding = 'max_length', truncation = True, max_length = DIM).input_ids
-            tokenized = torch.tensor(tokenized).view(1, len(tokenized)).to(device='cuda')
-            pred = F.softmax(self.model(tokenized), dim=1)
+            tokenized_2d = torch.tensor(tokenized).view(1, len(tokenized)).to(device='cuda')
+            pred = torch.argmax(F.softmax(self.model(tokenized_2d), dim=1))
+            st, en = pred[0], pred[1]
+            if st > en:
+                en = st
+            pred_text = self.tokenizer.decode(tokenized[st:en+1])
+            return compute_f1(pred_text, line['qas'][0]['answers'][0])
 
-
-            print(prepared_line)
-            print("answer: {}".format(line['qas'][0]['answers'][0]))
-            print("top 5: {}".format(torch.topk(pred, 5).indices))
-            print("labels: {}".format(y))
-            print("")
+            # print(prepared_line)
+            # print("answer: {}".format(line['qas'][0]['answers'][0]))
+            # print("top 5: {}".format(torch.topk(pred, 5).indices))
+            # print("labels: {}".format(y))
+            # print("")
 
 
             # return pred
