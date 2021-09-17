@@ -47,10 +47,10 @@ class EvaluateModel:
             y = self._find_start_end_indices(self.tokenizer(line['context'].lower()).input_ids,
                                             self.tokenizer(line['qas'][0]['answers'][0].lower()).input_ids)
             num_occ_of_answer = len(line['qas'][0]['detected_answers'][0]['char_spans'])
-            if len(y) != num_occ_of_answer:
-                return -1
             prepared_line = line['context'] +  " </s> " + line['qas'][0]['question'] + " " + "<extra_id_0>"
             tokenized = self.tokenizer(prepared_line, padding = 'max_length', truncation = True, max_length = DIM).input_ids
+            if len(y) != num_occ_of_answer or len(tokenized) > DIM:
+                return -1
             tokenized_2d = torch.tensor(tokenized).view(1, len(tokenized)).to(device='cuda')
             pred = torch.argmax(self.model(tokenized_2d), dim=1)
             print(pred)
