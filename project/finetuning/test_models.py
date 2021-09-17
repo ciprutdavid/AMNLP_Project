@@ -43,6 +43,7 @@ class EvaluateModel:
             tokenized = torch.tensor(tokenized).view(1, len(tokenized)).to(device='cuda')
             pred = F.softmax(self.model(tokenized), dim=1)
 
+            print("answer: {}".format(line['qas'][0]['detected_answers'][0]['text']))
             print("top 5: {}".format(torch.topk(pred, 5)))
             print("labels: {}".format(y))
             print("")
