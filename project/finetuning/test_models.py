@@ -26,9 +26,10 @@ class EvaluateModel:
             if 'context' not in line:
                 print("Metadata entry of the dataset")
                 return
-            prepare_line = line['context'] +  " </s> " + line['qas'][0]['question'] + " " + "<extra_id_0>"
-            pred = self.model(prepare_line)
-            return(pred)
+            prepared_line = line['context'] +  " </s> " + line['qas'][0]['question'] + " " + "<extra_id_0>"
+            tokenized = self.tokenizer(prepared_line).input_ids
+            pred = self.model(tokenized)
+            return pred
 
     def natural_qa_data(self):
         path = './mrqa-few-shot/naturalquestions/dev.jsonl'
