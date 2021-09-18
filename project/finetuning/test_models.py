@@ -80,8 +80,6 @@ class EvaluateModel:
             # print("top 5: {}".format(torch.topk(pred, 5).indices))
             # print("labels: {}".format(y))
             # print("")
-
-
             # return pred
 
     def natural_qa_data(self):
@@ -90,6 +88,14 @@ class EvaluateModel:
             test_set = list(f)
         for sen in test_set:
             yield(json.loads(sen))
+
+    def textbook_qa_data(self):
+        path = './mrqa-few-shot/textbookqa/dev.jsonl'
+        with open(path, 'rb') as f:
+            test_set = list(f)
+        for sen in test_set:
+            yield(json.loads(sen))
+
 
     def _find_start_end_indices(self, context_ids, answer_ids):
         res = []
