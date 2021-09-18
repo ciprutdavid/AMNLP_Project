@@ -4,7 +4,7 @@ import project.finetuning.t5_splinter_finetune_dataset as splinter_dataset
 import project.pretraining.splinter_t5_model as splinter_model
 import torch.nn.functional as F
 
-MODEL_PATH = "project/pretraining/t5_splinter_pretrain_output_dir/checkpoint-2400/pytorch_model.bin"
+MODEL_PATH = "project/pretraining/t5_splinter_pretrain_output_dir/checkpoint-2400"
 DATA_PATH = "data/splinter_data/squad"
 SEED = [42]
 EXAMPLES = [32, 128, 512]

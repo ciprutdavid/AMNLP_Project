@@ -2,7 +2,7 @@ import itertools
 from transformers import AutoTokenizer, Trainer, TrainingArguments, T5ForConditionalGeneration
 import t5_baseline_fintune_dataset as baseline_dataset
 
-MODEL_PATH = "../pretraining/t5_baseline_pretrain_output_dir/checkpoint-3900"
+
 DATA_PATH = "../../data/splinter_data/squad"
 SEED = [42]
 EXAMPLES = [32, 128, 512]
@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
         args = {  # TODO : BEFORE FINETUNING CHOOSE SETTINGS
             # output setting
-            'output_dir': f"output_dir/huggingface_pretrained_t5_finetune_{seed}_{examples}/",
+            'output_dir': f"output_dir/t5_finetune_{seed}_{examples}/",
 
             # save setting
             'save_strategy': "epoch",

@@ -1,9 +1,6 @@
-import torch.utils.data
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 import json
-import time
-import numpy as np
 
 DATA_PATH = "../../data/splinter_data/squad"
 SEED = [42, 43, 44]
@@ -23,12 +20,11 @@ def create_squad_train(seed, examples, tokenizer=AutoTokenizer.from_pretrained('
     with open(path, 'r') as file:
         for item in file:
             item_dict = json.loads(item)
-            if 'context' not in item_dict:
-                continue
-            else:
-                if len(tokenizer(item_dict['context'])['input_ids']) > 512: continue
-                data.append(item_dict['context'] + " </s> "  + item_dict['qas'][0]['question'] + " " + "<extra_id_0>")
-                labels.append("<extra_id_0> " + item_dict['qas'][0]['answers'][0] + " </s>")
+            if 'context' not in item_dict: continue
+            masked_context = item_dict['context'] + " </s> " + item_dict['qas'][0]['question'] + " " + "<extra_id_0>"
+            if len(tokenizer(masked_context)['input_ids']) > 512: continue
+            data.append(masked_context)
+            labels.append("<extra_id_0> " + item_dict['qas'][0]['answers'][0] + " </s>")
     return data, labels
 
 
@@ -43,7 +39,9 @@ def create_squad_val(size=1000, tokenizer=AutoTokenizer.from_pretrained('t5-base
                 break
             else:
                 item_dict = json.loads(item)
-                if idx == 0 or len(tokenizer(item_dict['context'])['input_ids']) > 512: continue
+                if 'context' not in item_dict: continue
+                masked_context = item_dict['context'] + " </s> " + item_dict['qas'][0]['question'] + " " + "<extra_id_0>"
+                if idx == 0 or len(tokenizer(masked_context)['input_ids']) > 512: continue
                 curr_size += 1
                 data.append(item_dict['context'] + " </s> " + item_dict['qas'][0]['question'] + " " + "<extra_id_0>")
                 labels.append("<extra_id_0> " + item_dict['qas'][0]['answers'][0] + " </s>")
