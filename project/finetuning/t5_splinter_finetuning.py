@@ -42,13 +42,12 @@ if __name__ == "__main__":
             # evaluation setting
             'do_eval': True,
             'evaluation_strategy': "epoch",
-            'eval_steps': int(examples / 8),
+            'eval_steps': 1,
             'per_device_eval_batch_size': 8,
 
             # train setting
             'num_train_epochs': 10,
             'per_device_train_batch_size': 8,
-            'gradient_accumulation_steps': int(examples / 8),
             'warmup_ratio': 0.1,
 
             # logging setting
