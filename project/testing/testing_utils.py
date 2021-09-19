@@ -1,6 +1,7 @@
-from transformers import AutoTokenizer, T5ForConditionalGeneration
+from transformers import AutoTokenizer
 from transformers.data.metrics.squad_metrics import compute_f1
 import project.pretraining.splinter_t5_model as splinter_model
+import project.finetuning.t5_baseline_with_qass as basline_qass
 import statistics
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -40,7 +41,7 @@ def evaluate_models(dataloader,dataset_name):
     data, labels = dataloader(tokenizer)
     baseline_f1_scores = []
     for key in t5_models_dict:
-        model = T5ForConditionalGeneration.from_pretrained(t5_models_dict[key])
+        model = basline_qass.from_pretrained(t5_models_dict[key])
         baseline_f1_scores.append(evaluate_f1(model, data, labels, tokenizer))
         print(f'{key} : {baseline_f1_scores[-1]}')
 
