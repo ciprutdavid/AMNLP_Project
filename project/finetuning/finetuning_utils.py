@@ -2,8 +2,8 @@ import torch.utils.data
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 import json
-import time
-import numpy as np
+from transformers import Trainer
+import torch.nn.functional as F
 
 DATA_PATH = "data/splinter_data/squad"
 SEED = [42,43,44,45,46]
@@ -102,4 +102,12 @@ class SquaDataColate:
             'input_ids': tokenized_X['input_ids'].to(self.device),'labels': labels.to(self.device)
         }
         return arg_dict
+
+
+class QASS_Trainer(Trainer):
+    def compute_loss(self, model, inputs, return_outputs=False):
+        labels = inputs.pop("labels")
+        outputs = model(**inputs)
+        loss = F.cross_entropy(outputs, labels)
+        return (loss, outputs) if return_outputs else loss
 

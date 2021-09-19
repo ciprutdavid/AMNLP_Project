@@ -1,9 +1,9 @@
 import itertools
-from transformers import AutoTokenizer, Trainer, TrainingArguments, T5ForConditionalGeneration
-import t5_baseline_fintune_dataset as baseline_dataset
+from transformers import AutoTokenizer, TrainingArguments
+import project.finetuning.t5_baseline_with_qass as baseline_qass
+import project.finetuning.finetuning_utils as utils
 
-MODEL_PATH = "../pretraining/t5_baseline_pretrain_output_dir/checkpoint-3900"
-DATA_PATH = "../../data/splinter_data/squad"
+DATA_PATH = "data/splinter_data/squad"
 SEED = [42]
 EXAMPLES = [32, 128, 512]
 train_file_name = lambda seed, examples: f"squad-train-seed-{seed}-num-examples-{examples}.jsonl"
@@ -14,11 +14,11 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained('t5-base')
 
     for seed, examples in settings:
-        train_dataset = baseline_dataset.SquaDataset(*baseline_dataset.create_squad_train(seed, examples, tokenizer))
-        val_datset = baseline_dataset.SquaDataset(*baseline_dataset.create_squad_val(1000, tokenizer))
-        model = T5ForConditionalGeneration.from_pretrained('t5-base')
+        train_dataset = utils.SquaDataset(*utils.create_squad_train(seed, examples, tokenizer))
+        val_datset = utils.SquaDataset(*utils.create_squad_val(1000, tokenizer))
+        model = baseline_qass.BaselineWithQass()
 
-        args = {  # TODO : BEFORE FINETUNING CHOOSE SETTINGS
+        args = {
             # output setting
             'output_dir': f"output_dir/t5_finetune_{seed}_{examples}/",
 
@@ -49,10 +49,10 @@ if __name__ == "__main__":
         trainer_config = {
             'model': model,
             'args': TrainingArguments(**args),
-            'data_collator': baseline_dataset.SquaDataColate(tokenizer=tokenizer),
+            'data_collator': utils.SquaDataColate(tokenizer=tokenizer),
             'train_dataset': train_dataset,
             'eval_dataset': val_datset,
         }
 
-        trainer = Trainer(**trainer_config)
+        trainer = utils.QASS_Trainer(**trainer_config)
         trainer.train()

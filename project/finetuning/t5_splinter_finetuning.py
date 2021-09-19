@@ -1,7 +1,7 @@
 import itertools
-from transformers import AutoTokenizer, Trainer, TrainingArguments, T5ForConditionalGeneration
-import project.finetuning.t5_splinter_finetune_dataset as splinter_dataset
+from transformers import AutoTokenizer, Trainer, TrainingArguments
 import project.pretraining.splinter_t5_model as splinter_model
+import project.finetuning.finetuning_utils as utils
 import torch.nn.functional as F
 
 MODEL_PATH = "project/pretraining/t5_splinter_pretrain_output_dir/checkpoint-2400"
@@ -25,8 +25,8 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained('t5-base')
 
     for seed, examples in settings:
-        train_dataset = splinter_dataset.SquaDataset(*splinter_dataset.create_squad_train(seed, examples, tokenizer))
-        val_datset = splinter_dataset.SquaDataset(*splinter_dataset.create_squad_val(1000, tokenizer))
+        train_dataset = utils.SquaDataset(*utils.create_squad_train(seed, examples, tokenizer))
+        val_datset = utils.SquaDataset(*utils.create_squad_val(1000, tokenizer))
         model = splinter_model.from_pretrained(MODEL_PATH,device='cuda')
         model.reinitialize_qas_weights()
 
@@ -61,10 +61,10 @@ if __name__ == "__main__":
         trainer_config = {
             'model': model,
             'args': TrainingArguments(**args),
-            'data_collator': splinter_dataset.SquaDataColate(tokenizer=tokenizer),
+            'data_collator': utils.SquaDataColate(tokenizer=tokenizer),
             'train_dataset': train_dataset,
             'eval_dataset': val_datset,
         }
 
-        trainer = SplinterT5Trainer(**trainer_config)
+        trainer = utils.QASS_Trainer(**trainer_config)
         trainer.train()
