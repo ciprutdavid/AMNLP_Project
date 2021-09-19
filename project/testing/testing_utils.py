@@ -7,7 +7,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 t5_models_dict = {
-    0: "model_checkpoints/t5_baseline_pretrained/checkpoint-3900",
+    0: "pretrained",
     32: "model_checkpoints/t5_baseline_finetuned/t5_finetune_42_32/checkpoint-40",
     128: "model_checkpoints/t5_baseline_finetuned/t5_finetune_42_128/checkpoint-150",
     512: "model_checkpoints/t5_baseline_finetuned/t5_finetune_42_512/checkpoint-600"
