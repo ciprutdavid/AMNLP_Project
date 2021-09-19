@@ -2,9 +2,8 @@ import itertools
 from transformers import AutoTokenizer, Trainer, TrainingArguments
 import project.pretraining.splinter_t5_model as splinter_model
 import project.finetuning.finetuning_utils as utils
-import torch.nn.functional as F
 
-MODEL_PATH = "project/pretraining/t5_splinter_pretrain_output_dir/checkpoint-2400"
+MODEL_PATH = "model_checkpoints/t5_splinter_pretrained/checkpoint-2400"
 DATA_PATH = "data/splinter_data/squad"
 SEED = [42]
 EXAMPLES = [32, 128, 512]
