@@ -12,14 +12,6 @@ train_file_name = lambda seed, examples: f"squad-train-seed-{seed}-num-examples-
 DEV_FILE_NAME = "dev.jsonl"
 
 
-class SplinterT5Trainer(Trainer):
-    def compute_loss(self, model, inputs, return_outputs=False):
-        labels = inputs.pop("labels")
-        outputs = model(**inputs)
-        loss = F.cross_entropy(outputs, labels)
-        return (loss, outputs) if return_outputs else loss
-
-
 if __name__ == "__main__":
     settings = itertools.product(SEED, EXAMPLES)
     tokenizer = AutoTokenizer.from_pretrained('t5-base')

@@ -5,7 +5,7 @@ from transformers import T5EncoderModel, T5Config, AutoTokenizer, T5ForCondition
 
 MASK_ID = 32099  # mask id of <extra_id_0>
 DIM = 512  # seq_len
-MODEL_PATH = "../../model_checkpoints/t5_baseline_pretrained/checkpoint-3900"
+MODEL_PATH = "model_checkpoints/t5_baseline_pretrained/checkpoint-3900"
 
 class BaselineWithQass(torch.nn.Module):
     def __init__(self, t5_model_path=MODEL_PATH):
