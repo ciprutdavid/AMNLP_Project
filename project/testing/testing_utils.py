@@ -46,7 +46,7 @@ def evaluate_models(dataloader,dataset_name):
         print(f'{key} : {baseline_f1_scores[-1]}')
 
     baseline_info = {
-        'model_name': 'T5 Baseline - Ours',
+        'model_name': 'Baseline',
         'f1_scores': baseline_f1_scores
     }
 
@@ -57,7 +57,7 @@ def evaluate_models(dataloader,dataset_name):
         print(f'{key} : {splinter_f1_scores[-1]}')
 
     splinter_info = {
-        'model_name': 'Splinter - Ours',
+        'model_name': 'Splinter',
         'f1_scores': splinter_f1_scores
     }
     plot_evaluation([baseline_info, splinter_info], dataset_name)
