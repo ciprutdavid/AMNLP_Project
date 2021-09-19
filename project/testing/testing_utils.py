@@ -14,7 +14,7 @@ t5_models_dict = {
 }
 
 splinter_models_dict = {
-    0: "pretrained",
+    0: "model_checkpoints/t5_splinter_pretrained/checkpoint-2400",
     32: "model_checkpoints/t5_splinter_finetuned/splinter_finetune_42_32/checkpoint-40",
     128: "model_checkpoints/t5_splinter_finetuned/splinter_finetune_42_128/checkpoint-150",
     512: "model_checkpoints/t5_splinter_finetuned/splinter_finetune_42_512/checkpoint-600"
