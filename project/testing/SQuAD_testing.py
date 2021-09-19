@@ -3,7 +3,7 @@ from project.testing.testing_utils import *
 
 
 NUM_OF_EXAMPLES = [0, 32, 128, 1024]
-DATA_PATH = "../../data/splinter_data/squad/dev.jsonl"
+DATA_PATH = "data/splinter_data/squad/dev.jsonl"
 
 
 def load_data(tokenizer=AutoTokenizer.from_pretrained('t5-base'),size=200):  # TODO : finish val data creation
