@@ -7,6 +7,7 @@ MASK_ID = 32099  # mask id of <extra_id_0>
 DIM = 512  # seq_len
 MODEL_PATH = "model_checkpoints/t5_baseline_pretrained/checkpoint-3900"
 
+
 class BaselineWithQass(torch.nn.Module):
     def __init__(self, t5_model_path=MODEL_PATH):
         super(BaselineWithQass, self).__init__()
@@ -39,3 +40,12 @@ class BaselineWithQass(torch.nn.Module):
             start_indices = torch.argmax(start_probs, dim=-1).to('cpu')
             end_indices = torch.argmax(end_probs, dim=-1).to('cpu')
         return input_ids[:, start_indices:end_indices + 1]
+
+
+def from_pretrained(path='pretrained', device='cuda'):
+    model = BaselineWithQass().to(device)
+    if path == 'pretrained':
+        return model
+    weight_dict = torch.load(path + "/pytorch_model.bin", map_location=device)
+    model.load_state_dict(weight_dict)
+    return model
