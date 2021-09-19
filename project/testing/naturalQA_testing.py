@@ -1,13 +1,11 @@
-from transformers import AutoTokenizer, T5ForConditionalGeneration
 import json
-import project.pretraining.splinter_t5_model as splinter_model
 from project.testing.testing_utils import *
 
 NUM_OF_EXAMPLES = [0, 32, 128, 1024]
 DATA_PATH = "data/splinter_data/naturalquestions/dev.jsonl"
 
 
-def load_data(tokenizer=AutoTokenizer.from_pretrained('t5-base'), size=100):
+def load_data(tokenizer=AutoTokenizer.from_pretrained('t5-base'), size=200):
     data = []
     labels = []
     if size is not None:
@@ -31,5 +29,4 @@ def load_data(tokenizer=AutoTokenizer.from_pretrained('t5-base'), size=100):
 
 
 if __name__ == "__main__":
-    evaluate_hf_pretrained_model(load_data,"Natural QA - Huggingface Pretrained")
-    evaluate_models(load_data,"Natural QA - Ours")
+    evaluate_models(load_data,"Natural QA")

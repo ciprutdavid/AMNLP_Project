@@ -1,6 +1,4 @@
-from transformers import AutoTokenizer, T5ForConditionalGeneration
 import json
-import project.pretraining.splinter_t5_model as splinter_model
 from project.testing.testing_utils import *
 
 NUM_OF_EXAMPLES = [0, 32, 128, 1024]
@@ -22,5 +20,4 @@ def load_data(tokenizer=AutoTokenizer.from_pretrained('t5-base')):
 
 
 if __name__ == "__main__":
-    evaluate_hf_pretrained_model(load_data,"Textbook QA - Huggingface Pretrained")
-    evaluate_models(load_data,"Textbook QA - Ours")
+    evaluate_models(load_data,"Textbook QA")

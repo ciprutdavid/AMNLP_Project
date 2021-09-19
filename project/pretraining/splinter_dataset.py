@@ -1,16 +1,12 @@
 import time
 import numpy as np
 import torch
-import torch.nn.functional as F
 from paragraph import Paragraph
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 import pickle
 from transformers import AutoTokenizer
-from splinter_tokenizer import SplinterTokenizer
 
-PROCESSED_DATA_PATH = "E:/Studies/TAU/NLP/processed"
-#PROCESSED_DATA_PATH = "/home/yandex/AMNLP2021/benzeharia/project/AMNLP_Project/project/data/processed"
-
+PROCESSED_DATA_PATH = "project/data/processed"
 
 PROCESSED_DATA_SIZE = 17610994
 QUESTION_TOKEN = "<extra_id_0>"

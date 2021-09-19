@@ -1,19 +1,9 @@
 from transformers import AutoTokenizer, T5ForConditionalGeneration
 from transformers.data.metrics.squad_metrics import compute_f1
 import project.pretraining.splinter_t5_model as splinter_model
-import project.finetuning.hf_pretrained_t5_encoder_with_qass as hf_model
 import statistics
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-
-local = "../../"
-
-hf_pretrained_t5_encoder_splinter = {
-    0: "t5-small",
-    32: "model_checkpoints/huggingface_pretrained_t5_encoder_finetuned/hf_pretrained_encoder_finetune_42_32/checkpoint-40",
-    128: "model_checkpoints/huggingface_pretrained_t5_encoder_finetuned/hf_pretrained_encoder_finetune_42_128/checkpoint-150",
-    512: "model_checkpoints/huggingface_pretrained_t5_encoder_finetuned/hf_pretrained_encoder_finetune_42_512/checkpoint-600"
-}
 
 t5_models_dict = {
     0: "model_checkpoints/t5_baseline_pretrained/checkpoint-3900",
@@ -45,18 +35,6 @@ def evaluate_f1(model, data, labels, tokenizer=AutoTokenizer.from_pretrained('t5
 
 
 def evaluate_models(dataloader,dataset_name):
-    tokenizer = AutoTokenizer.from_pretrained('t5-small')
-    data, labels = dataloader(tokenizer)
-    hf_p_t5_f1 = []
-    for key in hf_pretrained_t5_encoder_splinter:
-        model = hf_model.from_pretrained(hf_pretrained_t5_encoder_splinter[key], 'cpu')
-        hf_p_t5_f1.append(evaluate_f1(model, data, labels, tokenizer))
-        print(f'{key} : {hf_p_t5_f1[-1]}')
-
-    hf_info = {
-        'model_name': 'Huggingface Pretrained Model',
-        'f1_scores': hf_p_t5_f1
-    }
 
     tokenizer = AutoTokenizer.from_pretrained('t5-base')
     data, labels = dataloader(tokenizer)
@@ -81,7 +59,7 @@ def evaluate_models(dataloader,dataset_name):
         'model_name': 'Splinter - Ours',
         'f1_scores': splinter_f1_scores
     }
-    plot_evaluation([hf_info,baseline_info, splinter_info], dataset_name)
+    plot_evaluation([baseline_info, splinter_info], dataset_name)
 
 
 def plot_evaluation(model_info_list,dataset_name):
