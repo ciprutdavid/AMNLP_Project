@@ -41,7 +41,7 @@ def evaluate_models(dataloader,dataset_name):
     data, labels = dataloader(tokenizer)
     baseline_f1_scores = []
     for key in t5_models_dict:
-        model = basline_qass.from_pretrained(t5_models_dict[key])
+        model = basline_qass.from_pretrained(t5_models_dict[key],'cpu')
         baseline_f1_scores.append(evaluate_f1(model, data, labels, tokenizer))
         print(f'{key} : {baseline_f1_scores[-1]}')
 
